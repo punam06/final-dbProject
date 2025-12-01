@@ -196,7 +196,88 @@ This is your main entry point. Open this link in your browser after running `./r
 
 ## Real-Time Database Updates
 
-When you make changes through the web interface (add, edit, delete), the system automatically:
+When you make changes through the web interface (add, edit, delete), the system automatically generates and saves the corresponding SQL queries to `database/schema.sql` with:
+
+✅ **Actual parameter values** (not placeholders)  
+✅ **Timestamps** of when the change was made  
+✅ **Operation type** (INSERT, UPDATE, DELETE)  
+✅ **Table name** where the change occurred  
+✅ **Metadata comments** for easy audit trail  
+
+### Example Auto-Saved Queries
+
+When you **add a new citizen** through the Citizens page:
+```sql
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:54:39
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Citizen (name, address, contact, area_id, email)
+VALUES ('Ali Ahmed Test 2', 'Test Address 2, Dhaka', '01977777777', 2, 'ali.test@email.com');
+```
+
+When you **edit an existing citizen**:
+```sql
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:55:05
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Citizen SET name='Updated Name', contact='01999888888', area_id=1 WHERE citizen_id=4;
+```
+
+When you **delete a citizen**:
+```sql
+-- ========================================
+-- FRONTEND AUTO-SAVE: DELETE Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:55:24
+-- Status: Successfully executed and logged
+-- ========================================
+DELETE FROM Citizen WHERE citizen_id=16;
+```
+
+### How Auto-Save Works
+
+1. **User Action**: You perform an action on any frontend page (Add, Edit, or Delete)
+2. **API Call**: Frontend sends request to backend API endpoint
+3. **Database Update**: Data is inserted, updated, or deleted in MySQL
+4. **Auto-Save**: Backend generates complete SQL query with actual values
+5. **Logging**: Query is appended to `database/schema.sql` as a comment block
+6. **Async**: Logging happens in background thread (doesn't slow down frontend)
+
+### View Auto-Saved Queries
+
+All auto-saved queries are appended to the end of `database/schema.sql`:
+
+```bash
+# View last 50 auto-saved queries
+tail -50 database/schema.sql
+
+# View all queries for a specific table
+grep -A3 "Table: Citizen" database/schema.sql
+
+# Count total auto-saves
+grep "FRONTEND AUTO-SAVE" database/schema.sql | wc -l
+```
+
+### Works on All Tables
+
+Auto-save logging works for all CRUD operations across all tables:
+- Citizens (add, edit, delete)
+- Areas (add, edit, delete)
+- Crew/Teams (add, edit, delete)
+- Waste records (add, edit, delete)
+- Bins (add, edit, delete)
+- Bills (add, edit, delete)
+- Payments (add, edit, delete)
+- Schedules (add, edit, delete)
+- Recycling Centers (add, edit, delete)
+
+
 
 1. **Saves** the SQL command to `database/schema.sql`
 2. **Logs** the timestamp and operation type
@@ -316,13 +397,81 @@ Initialize the database manually:
 mysql -u root -p < database/schema.sql
 ```
 
+## Testing Auto-Save Feature
+
+### Automated Test: Verify All CRUD Operations Are Logged
+
+1. **Start the server**
+   ```bash
+   ./run.sh
+   ```
+
+2. **Open in browser**
+   ```
+   http://localhost:8000
+   ```
+
+3. **Test CREATE (INSERT)**
+   - Go to Citizens page → Click "+ Add Citizen"
+   - Fill in: Name, Address, Contact, Email, Area
+   - Click Save
+   - **Expected**: Query appears in `database/schema.sql` with INSERT statement
+
+4. **Test READ (SELECT)**
+   - Citizens page auto-loads data
+   - **Expected**: No logging for SELECT queries (only CRUD changes)
+
+5. **Test UPDATE**
+   - Click Edit on any citizen
+   - Change the name and contact
+   - Click Save
+   - **Expected**: UPDATE query logged in `database/schema.sql`
+
+6. **Test DELETE**
+   - Click Delete on any citizen
+   - Confirm deletion
+   - **Expected**: DELETE query logged in `database/schema.sql`
+
+7. **Verify Logs**
+   ```bash
+   # Check the latest auto-saved queries
+   tail -30 database/schema.sql
+   
+   # Should show something like:
+   # -- FRONTEND AUTO-SAVE: INSERT Operation
+   # -- Table: Citizen
+   # -- Timestamp: 2025-12-01 14:54:39
+   # INSERT INTO Citizen (name, address, contact, area_id, email)
+   # VALUES ('Your Name', 'Your Address', 'Your Contact', 1, 'your@email.com');
+   ```
+
+### Manual API Test
+
+Test auto-save via curl command:
+
+```bash
+# Create a citizen (INSERT)
+curl -X POST http://localhost:8000/api/citizens \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "address": "Test Address",
+    "contact": "01700000000",
+    "email": "test@email.com",
+    "area_id": 1
+  }'
+
+# Wait 2 seconds, then check schema.sql
+sleep 2 && tail -10 database/schema.sql
+```
+
 ## Project Files
 
 - `run.sh` - Automated startup script (recommended)
 - `server-quick-start.sh` - Quick restart with process cleanup (USE THIS if server won't start)
 - `backend/app.py` - Flask application with all API endpoints
 - `frontend/templates/` - HTML templates for UI
-- `database/schema.sql` - MySQL database schema with sample data
+- `database/schema.sql` - MySQL database schema with auto-saved queries
 - `static/` - CSS and JavaScript files
 - `requirements.txt` - Python dependencies
 - `environment/` - Configuration files

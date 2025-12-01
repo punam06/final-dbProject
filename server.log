@@ -33,3 +33,15 @@
 127.0.0.1 - - [01/Dec/2025 13:50:13] "GET /api/citizens HTTP/1.1" 200 -
 127.0.0.1 - - [01/Dec/2025 13:50:13] "GET /api/bills HTTP/1.1" 200 -
 127.0.0.1 - - [01/Dec/2025 13:50:13] "GET /api/dashboard-stats HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:26:11] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:26:11] "[36mGET /static/common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 14:26:11] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 14:26:21] "GET /areas HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:26:21] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 14:26:21] "[36mGET /static/common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 14:26:21] "GET /api/areas HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:26:24] "GET /citizens HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:26:24] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 14:26:24] "[36mGET /static/common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 14:26:24] "GET /api/areas-list HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:26:24] "GET /api/citizens HTTP/1.1" 200 -

@@ -13,7 +13,7 @@ USE waste_management;
 ## 📋 VIEW ALL TABLES (Normal Queries)
 
 ```sql
-SELECT * FROM Area;
+
 SELECT * FROM Citizen;
 SELECT * FROM Waste;
 SELECT * FROM Bins;

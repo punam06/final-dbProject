@@ -340,3 +340,286 @@ SELECT b.bill_id, b.bill_number, b.status, b.amount as bill_amount, COALESCE(SUM
 (b.amount - COALESCE(SUM(p.amount), 0)) as balance_due, c.name as citizen_name, a.area_name
 FROM Bill b JOIN Citizen c ON b.citizen_id = c.citizen_id JOIN Area a ON c.area_id = a.area_id
 LEFT JOIN Payment p ON b.bill_id = p.bill_id GROUP BY b.bill_id, b.bill_number, b.status, b.amount, c.name, a.area_name;
+
+-- ===== AGGREGATE FUNCTIONS WITH GROUP BY - QUERIES FOR REAL-TIME REPORTING =====
+
+-- 1. WASTE STATISTICS BY CATEGORY (COUNT, SUM, AVG, MIN, MAX)
+-- Purpose: Analyze waste data across categories using all aggregate functions
+-- Usage: Copy entire SELECT query and paste into MySQL
+SELECT 
+    category,
+    COUNT(*) AS item_count,
+    SUM(weight) AS total_weight_kg,
+    AVG(weight) AS average_weight_kg,
+    MIN(weight) AS min_weight_kg,
+    MAX(weight) AS max_weight_kg
+FROM Waste
+GROUP BY category
+ORDER BY total_weight_kg DESC;
+
+-- 2. WASTE STATISTICS BY STATUS (Real-time updates)
+-- Purpose: Track waste by collection status
+SELECT 
+    status,
+    COUNT(*) AS total_waste_items,
+    SUM(weight) AS total_weight_kg,
+    AVG(weight) AS avg_weight_per_item,
+    MIN(weight) AS minimum_weight,
+    MAX(weight) AS maximum_weight,
+    COUNT(DISTINCT citizen_id) AS unique_citizens
+FROM Waste
+GROUP BY status
+ORDER BY total_weight_kg DESC;
+
+-- 3. WASTE BY CITIZEN (Find who produces most waste)
+-- Purpose: Identify top waste producers
+SELECT 
+    c.citizen_id,
+    c.name,
+    c.address,
+    COUNT(w.waste_id) AS waste_count,
+    SUM(w.weight) AS total_waste_kg,
+    AVG(w.weight) AS avg_weight_per_entry,
+    a.area_name
+FROM Citizen c
+LEFT JOIN Waste w ON c.citizen_id = w.citizen_id
+LEFT JOIN Area a ON c.area_id = a.area_id
+GROUP BY c.citizen_id, c.name, c.address, a.area_name
+ORDER BY total_waste_kg DESC;
+
+-- 4. WASTE COLLECTION BY AREA (Performance metrics)
+-- Purpose: See how much waste each area generates
+SELECT 
+    a.area_id,
+    a.area_name,
+    a.population,
+    COUNT(DISTINCT c.citizen_id) AS active_citizens,
+    COUNT(w.waste_id) AS waste_entries,
+    SUM(w.weight) AS total_waste_kg,
+    AVG(w.weight) AS avg_weight_per_waste,
+    ROUND(SUM(w.weight) / a.population * 1000, 2) AS waste_per_1000_population
+FROM Area a
+LEFT JOIN Citizen c ON a.area_id = c.area_id
+LEFT JOIN Waste w ON c.citizen_id = w.citizen_id
+GROUP BY a.area_id, a.area_name, a.population
+ORDER BY total_waste_kg DESC;
+
+-- 5. BILL SUMMARY WITH AGGREGATE FUNCTIONS
+-- Purpose: Financial overview with all calculations
+SELECT 
+    status,
+    COUNT(*) AS bill_count,
+    SUM(amount) AS total_amount_bdt,
+    AVG(amount) AS average_bill_amount,
+    MIN(amount) AS minimum_bill,
+    MAX(amount) AS maximum_bill,
+    ROUND(AVG(amount), 2) AS mean_amount
+FROM Bill
+GROUP BY status
+ORDER BY total_amount_bdt DESC;
+
+-- 6. PAYMENT STATISTICS BY METHOD
+-- Purpose: Track payment methods and amounts
+SELECT 
+    method,
+    COUNT(*) AS payment_count,
+    SUM(amount) AS total_amount_bdt,
+    AVG(amount) AS avg_payment_amount,
+    MIN(amount) AS min_payment,
+    MAX(amount) AS max_payment
+FROM Payment
+GROUP BY method
+ORDER BY total_amount_bdt DESC;
+
+-- 7. BILL PAYMENT STATUS ANALYSIS
+-- Purpose: Determine paid vs unpaid amounts by status
+SELECT 
+    b.status,
+    COUNT(DISTINCT b.bill_id) AS total_bills,
+    SUM(b.amount) AS billing_amount_bdt,
+    COALESCE(SUM(p.amount), 0) AS total_paid_bdt,
+    (SUM(b.amount) - COALESCE(SUM(p.amount), 0)) AS outstanding_bdt,
+    ROUND((COALESCE(SUM(p.amount), 0) / SUM(b.amount)) * 100, 2) AS payment_percentage
+FROM Bill b
+LEFT JOIN Payment p ON b.bill_id = p.bill_id
+GROUP BY b.status
+ORDER BY outstanding_bdt DESC;
+
+-- 8. BIN STATUS DISTRIBUTION BY AREA
+-- Purpose: Monitor bin capacity across all areas
+SELECT 
+    a.area_id,
+    a.area_name,
+    COUNT(b.bin_id) AS total_bins,
+    SUM(CASE WHEN b.status = 'Full' THEN 1 ELSE 0 END) AS full_bins,
+    SUM(CASE WHEN b.status = 'Partial' THEN 1 ELSE 0 END) AS partial_bins,
+    SUM(CASE WHEN b.status = 'Empty' THEN 1 ELSE 0 END) AS empty_bins,
+    ROUND(AVG(b.fill_level), 2) AS avg_fill_level,
+    MAX(b.fill_level) AS max_fill_level
+FROM Area a
+JOIN Bins b ON a.area_id = b.area_id
+GROUP BY a.area_id, a.area_name
+ORDER BY full_bins DESC;
+
+-- 9. CREW TEAM STATISTICS BY AREA
+-- Purpose: Analyze crew deployment and team sizes
+SELECT 
+    a.area_id,
+    a.area_name,
+    COUNT(c.crew_id) AS total_crews,
+    SUM(c.team_size) AS total_team_members,
+    AVG(c.team_size) AS avg_team_size,
+    MIN(c.team_size) AS min_team_size,
+    MAX(c.team_size) AS max_team_size
+FROM Area a
+LEFT JOIN Crew c ON a.area_id = c.area_id
+GROUP BY a.area_id, a.area_name
+ORDER BY total_team_members DESC;
+
+-- 10. RECYCLING CENTER CAPACITY ANALYSIS
+-- Purpose: Track recycling center utilization
+SELECT 
+    center_id,
+    location,
+    capacity,
+    COUNT(DISTINCT CAST(SUBSTRING(location, 1, LOCATE(' ', location) - 1) AS CHAR)) AS facility_count
+FROM Recycling_Center
+GROUP BY center_id, location, capacity
+ORDER BY capacity DESC;
+
+-- ===== REAL-TIME UPDATE COMMANDS WITH INLINE COMMENTS =====
+
+-- UPDATE 1: UPDATE WASTE STATUS FROM PENDING TO COLLECTED
+-- Usage: Marks all pending waste as collected for real-time tracking
+UPDATE Waste 
+SET status = 'Collected', collection_date = NOW() 
+WHERE status = 'Pending' 
+LIMIT 10;
+
+-- Verify the update worked
+SELECT waste_id, name, status, collection_date FROM Waste WHERE status = 'Collected' LIMIT 5;
+
+-- UPDATE 2: UPDATE BIN FILL LEVELS (Real-time sensor data)
+-- Usage: Simulates IoT sensor updates for bin fill levels
+UPDATE Bins 
+SET fill_level = CASE 
+    WHEN bin_number = 'BIN001' THEN 75
+    WHEN bin_number = 'BIN002' THEN 20
+    WHEN bin_number = 'BIN003' THEN 90
+    WHEN bin_number = 'BIN004' THEN 55
+    ELSE fill_level
+END,
+status = CASE
+    WHEN fill_level >= 80 THEN 'Full'
+    WHEN fill_level < 20 THEN 'Empty'
+    ELSE 'Partial'
+END,
+created_at = NOW()
+WHERE bin_number IN ('BIN001', 'BIN002', 'BIN003', 'BIN004');
+
+-- Verify bin updates
+SELECT bin_number, status, fill_level FROM Bins WHERE bin_number IN ('BIN001', 'BIN002', 'BIN003', 'BIN004');
+
+-- UPDATE 3: UPDATE OVERDUE BILLS TO OVERDUE STATUS
+-- Usage: Auto-flag bills past due date as overdue
+UPDATE Bill 
+SET status = 'Overdue', created_at = NOW()
+WHERE due_date < CURDATE() AND status != 'Paid';
+
+-- Verify overdue bills
+SELECT bill_number, status, due_date FROM Bill WHERE status = 'Overdue';
+
+-- UPDATE 4: UPDATE CITIZEN CONTACT WITH NEW PHONE NUMBERS
+-- Usage: Real-time contact updates for specific citizens
+UPDATE Citizen 
+SET contact = CASE 
+    WHEN citizen_id = 1 THEN '01900000001'
+    WHEN citizen_id = 2 THEN '01900000002'
+    WHEN citizen_id = 3 THEN '01900000003'
+    ELSE contact
+END,
+registration_date = NOW()
+WHERE citizen_id IN (1, 2, 3);
+
+-- Verify citizen updates
+SELECT citizen_id, name, contact FROM Citizen WHERE citizen_id IN (1, 2, 3);
+
+-- UPDATE 5: MARK PROCESSED WASTE AS RECYCLED
+-- Usage: Update waste items that have been processed at recycling centers
+UPDATE Waste 
+SET status = 'Recycled', collection_date = NOW()
+WHERE category = 'Recyclable' AND status = 'Collected'
+LIMIT 5;
+
+-- Verify recycled items
+SELECT waste_id, name, category, status FROM Waste WHERE status = 'Recycled';
+
+-- UPDATE 6: AUTO-UPDATE PAYMENT METHOD FOR FAILED TRANSACTIONS
+-- Usage: Change payment method if online payment failed
+UPDATE Payment 
+SET method = 'Cash', created_at = NOW()
+WHERE method = 'Online' AND payment_date < DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+LIMIT 3;
+
+-- Verify payment updates
+SELECT payment_id, method, payment_date FROM Payment WHERE method = 'Cash' ORDER BY payment_date DESC LIMIT 5;
+
+-- UPDATE 7: BATCH UPDATE CREW TEAM SIZES BASED ON AREA DEMAND
+-- Usage: Scale up team sizes for high-population areas
+UPDATE Crew
+SET team_size = CASE
+    WHEN area_id = 4 THEN 6
+    WHEN area_id = 3 THEN 5
+    WHEN area_id = 1 THEN 5
+    ELSE team_size
+END,
+created_at = NOW()
+WHERE area_id IN (1, 3, 4);
+
+-- Verify crew updates
+SELECT crew_id, team_name, team_size, area_id FROM Crew WHERE area_id IN (1, 3, 4);
+
+-- UPDATE 8: REAL-TIME UPDATE BIN STATUS BASED ON FILL LEVEL
+-- Usage: Auto-update bin status to match fill level thresholds
+UPDATE Bins
+SET status = CASE
+    WHEN fill_level >= 85 THEN 'Full'
+    WHEN fill_level <= 20 THEN 'Empty'
+    WHEN fill_level > 20 AND fill_level < 85 THEN 'Partial'
+    ELSE status
+END
+WHERE 1=1;
+
+-- Verify bin status updates
+SELECT bin_number, status, fill_level FROM Bins ORDER BY fill_level DESC;
+
+-- ===== CONSTRAINT ENFORCEMENT EXAMPLES =====
+
+-- Constraint Test 1: Try to insert invalid weight (should fail)
+-- INSERT INTO Waste (waste_type, name, category, weight, citizen_id, status) 
+-- VALUES ('Test', 'Invalid', 'Recyclable', -1.5, 1, 'Collected');
+-- Error: Check constraint 'check_weight' violated
+
+-- Constraint Test 2: Try to insert invalid fill level (should fail)
+-- UPDATE Bins SET fill_level = 150 WHERE bin_id = 1;
+-- Error: Check constraint 'check_fill_level' violated
+
+-- Constraint Test 3: Try to insert invalid status (should fail)
+-- UPDATE Waste SET status = 'Invalid' WHERE waste_id = 1;
+-- Error: Check constraint 'check_waste_status' violated
+
+-- ===== INLINE DOCUMENTATION FOR QUERIES =====
+
+-- Query Types Included:
+-- 1. COUNT(*) - Counts number of records in each group
+-- 2. SUM() - Adds up all values in a column
+-- 3. AVG() - Calculates average value across group
+-- 4. MIN() - Finds minimum value in group
+-- 5. MAX() - Finds maximum value in group
+-- 6. GROUP BY - Organizes results by specified column
+-- 7. LEFT JOIN - Includes all records from left table even if no match
+-- 8. CASE WHEN - Conditional updates for real-time status changes
+-- 9. CURDATE() - Current date for real-time updates
+-- 10. NOW() - Current timestamp for real-time updates
+-- 11. LIMIT - Restricts number of rows affected
+-- 12. ORDER BY - Sorts results by specified column

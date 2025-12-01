@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 import os
 import threading
+import time
 
 # Setup template directory - use frontend/templates or root templates
 template_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'templates')
@@ -35,6 +36,8 @@ try:
         pool_name="waste_pool",
         pool_size=5,
         pool_reset_session=True,
+        autocommit=False,
+        connection_timeout=10,
         **DB_CONFIG
     )
 except Exception as e:
@@ -99,81 +102,129 @@ def log_query_to_schema_async(query_text, params, operation_type, table_name):
 
 def get_db_connection():
     """Get database connection from pool (with retry logic)"""
-    try:
-        if cnx_pool:
-            conn = cnx_pool.get_connection()
-            # Test connection (reconnect if needed)
-            if conn and not conn.is_connected():
-                conn.reconnect()
-            return conn
-        else:
-            # Fallback if pool failed
-            return mysql.connector.connect(**DB_CONFIG)
-    except Error as e:
-        print(f"⚠ Database Connection Error: {e}")
-        return None
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            if cnx_pool:
+                conn = cnx_pool.get_connection()
+                # Test connection (reconnect if needed)
+                if conn:
+                    try:
+                        conn.ping(reconnect=True, attempts=1, delay=0)
+                    except:
+                        conn.close()
+                        conn = cnx_pool.get_connection()
+                return conn
+            else:
+                # Fallback if pool failed
+                return mysql.connector.connect(**DB_CONFIG)
+        except Error as e:
+            if attempt < max_retries - 1:
+                print(f"⚠️ Database connection attempt {attempt + 1} failed, retrying...")
+                import time
+                time.sleep(1)
+            else:
+                print(f"⚠️ Database Connection Error after {max_retries} attempts: {e}")
+    return None
 
 def execute_query(query, params=None, fetch_all=True):
-    """Execute SELECT query with connection pooling"""
+    """Execute SELECT query with connection pooling and error recovery"""
     conn = None
-    try:
-        conn = get_db_connection()
-        if not conn:
-            return [] if fetch_all else None
-        
-        cursor = conn.cursor(dictionary=True)
-        
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        
-        result = cursor.fetchall() if fetch_all else cursor.fetchone()
-        cursor.close()
-        return result if result else ([] if fetch_all else None)
-    except Error as e:
-        print(f"⚠ Query Execution Error: {e}")
-        return [] if fetch_all else None
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
+    max_retries = 2
+    
+    for attempt in range(max_retries):
+        try:
+            conn = get_db_connection()
+            if not conn:
+                print(f"⚠️ Query execution failed: No database connection")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                return [] if fetch_all else None
+            
+            cursor = conn.cursor(dictionary=True)
+            
+            # Set reasonable timeout (30 seconds)
+            conn.connection_timeout = 30
+            
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            
+            result = cursor.fetchall() if fetch_all else cursor.fetchone()
+            cursor.close()
+            return result if result else ([] if fetch_all else None)
+            
+        except Error as e:
+            print(f"⚠️ Query Execution Error (attempt {attempt + 1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+        finally:
+            if conn:
+                try:
+                    if conn.is_connected():
+                        conn.close()
+                except:
+                    pass
+    
+    return [] if fetch_all else None
 
 def execute_update(query, params):
-    """Execute INSERT, UPDATE, DELETE with connection pooling"""
+    """Execute INSERT, UPDATE, DELETE with connection pooling and error recovery"""
     conn = None
-    try:
-        conn = get_db_connection()
-        if not conn:
-            return False
-        
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        conn.commit()
-        
-        # Determine operation type for logging
-        query_upper = query.strip().upper()
-        if query_upper.startswith('UPDATE'):
-            op_type = "UPDATE"
-            table_name = query.split()[1] if len(query.split()) > 1 else "Unknown"
-        elif query_upper.startswith('DELETE'):
-            op_type = "DELETE"
-            match = query.split('FROM')[1].split()[0] if 'FROM' in query else "Unknown"
-            table_name = match
-        else:
-            op_type = "INSERT"
-            table_name = query.split()[2] if len(query.split()) > 2 else "Unknown"
-        
-        # Log asynchronously (non-blocking) with actual parameter values
-        log_query_to_schema_async(query, params, op_type, table_name)
-        
-        cursor.close()
-        return True
-    except Error as e:
-        print(f"⚠ Update Execution Error: {e}")
-        return False
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
+    max_retries = 2
+    
+    for attempt in range(max_retries):
+        try:
+            conn = get_db_connection()
+            if not conn:
+                print(f"⚠️ Update execution failed: No database connection")
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                    continue
+                return False
+            
+            cursor = conn.cursor()
+            
+            # Set reasonable timeout (30 seconds)
+            conn.connection_timeout = 30
+            
+            cursor.execute(query, params)
+            conn.commit()
+            
+            # Determine operation type for logging
+            query_upper = query.strip().upper()
+            if query_upper.startswith('UPDATE'):
+                op_type = "UPDATE"
+                table_name = query.split()[1] if len(query.split()) > 1 else "Unknown"
+            elif query_upper.startswith('DELETE'):
+                op_type = "DELETE"
+                match = query.split('FROM')[1].split()[0] if 'FROM' in query else "Unknown"
+                table_name = match
+            else:
+                op_type = "INSERT"
+                table_name = query.split()[2] if len(query.split()) > 2 else "Unknown"
+            
+            # Log asynchronously (non-blocking) with actual parameter values
+            log_query_to_schema_async(query, params, op_type, table_name)
+            
+            cursor.close()
+            return True
+            
+        except Error as e:
+            print(f"⚠️ Update Execution Error (attempt {attempt + 1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+        finally:
+            if conn:
+                try:
+                    if conn.is_connected():
+                        conn.close()
+                except:
+                    pass
+    
+    return False
 
 # ===== FRONTEND ROUTES =====
 

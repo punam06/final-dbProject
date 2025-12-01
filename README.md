@@ -304,6 +304,84 @@ This feature provides:
 - **Debugging support** with timestamps
 - **Demo ready** SQL commands
 
+---
+
+## 🛠️ Server Stability Enhancements
+
+### What Was Fixed
+The server was crashing due to:
+1. **Weak database connection handling** - Connections would timeout silently
+2. **No connection recovery** - Failed queries would crash the server
+3. **No automatic restart** - Crashed servers wouldn't recover
+4. **Poor error handling** - Database errors weren't properly caught
+
+### What's New (Commit: Latest)
+
+**1. Enhanced Connection Pooling**
+- Added connection timeout (10 seconds)
+- Automatic connection health checks (ping before use)
+- Automatic reconnection on connection loss
+- Retry logic (up to 3 attempts per query)
+
+**2. Better Error Handling**
+- All database operations now have retry mechanisms
+- Connection failures don't crash the server
+- Timeout protection on queries (30 seconds)
+- Detailed error logging for debugging
+
+**3. Robust Server Management Script**
+New `run_server.sh` script with auto-restart capability:
+```bash
+# Start server with auto-restart monitoring
+./run_server.sh start
+
+# Stop the server
+./run_server.sh stop
+
+# Restart the server
+./run_server.sh restart
+
+# View real-time logs
+./run_server.sh logs
+```
+
+**Features of run_server.sh**:
+- ✅ Auto-kills lingering processes before starting
+- ✅ Detects port 8000 conflicts automatically
+- ✅ Monitors server health every 5 seconds
+- ✅ Auto-restarts server if it crashes
+- ✅ Comprehensive logging to `server.log`
+- ✅ Color-coded status messages
+
+### How to Use
+
+**Option 1: Simple Start (Best for Development)**
+```bash
+# Just run the monitoring script (auto-restarts on crash)
+./run_server.sh start
+```
+
+**Option 2: Manual Start (For Debugging)**
+```bash
+# Start without monitoring
+cd /Users/punam/Desktop/varsity/3-1/Lab/dbms/finalProj
+source venv/bin/activate
+python backend/app.py
+```
+
+**Option 3: Force Restart with Legacy Script**
+```bash
+# Use old script if needed
+./server-quick-start.sh
+```
+
+### Benefits
+- Server automatically recovers from crashes
+- No more "Address already in use" errors
+- Database connection failures don't crash the server
+- Real-time visibility into server health
+- All queries logged with timestamps
+
 ## Troubleshooting
 
 ### 🌐 Quick Access Links

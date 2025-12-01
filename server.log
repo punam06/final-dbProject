@@ -16,3 +16,28 @@
 127.0.0.1 - - [01/Dec/2025 15:02:29] "GET / HTTP/1.1" 200 -
 127.0.0.1 - - [01/Dec/2025 15:02:34] "GET /crew HTTP/1.1" 200 -
 127.0.0.1 - - [01/Dec/2025 15:02:41] "GET /crew HTTP/1.1" 200 -
+
+✅ Starting Waste Management System on port 8000
+📍 Access at: http://localhost:8000
+🌐 API at: http://localhost:8000/api
+
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [01/Dec/2025 15:58:12] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:15] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:17] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:20] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:20] "GET /api/staff HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:22] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:27] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:32] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:33] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:33] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 15:58:33] "[36mGET /static/common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 15:58:37] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:42] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:48] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:58:53] "GET / HTTP/1.1" 200 -

@@ -59,31 +59,39 @@ else
     echo -e "${GREEN}✓ Dependencies installed${NC}"
 fi
 
-# Step 4: Kill existing processes on port 8000
+# Step 4: Kill existing processes on port 8000 AND any lingering Flask processes
 echo -e "\n${YELLOW}[3/4]${NC} Checking port 8000..."
 if check_port 8000; then
     kill_port 8000
 fi
+# Also kill any Python processes running Flask (in case they're on different ports)
+pkill -f "backend/app.py" 2>/dev/null || true
+pkill -f "python.*app.py" 2>/dev/null || true
+sleep 1
 
 # Step 5: Start Flask server
-echo -e "\n${YELLOW}[4/4]${NC} Starting Flask server on port 8000..."
+echo -e "\n${YELLOW}[4/4]${NC} Starting Flask server..."
 cd "$SCRIPT_DIR"
 python3 backend/app.py > server.log 2>&1 &
 SERVER_PID=$!
 
-sleep 3
+sleep 4
+
+# Find which port the server is actually running on
+ACTUAL_PORT=$(lsof -i -P -n 2>/dev/null | grep -i "python\|app" | grep LISTEN | awk '{print $9}' | cut -d: -f2 | head -1)
 
 # Verify server started
-if check_port 8000; then
+if [ ! -z "$ACTUAL_PORT" ]; then
     echo -e "${GREEN}✓ Flask server started successfully${NC}"
     echo ""
     echo "╔════════════════════════════════════════════════════════════════╗"
     echo "║                    🎉 SERVER IS RUNNING 🎉                     ║"
     echo "╠════════════════════════════════════════════════════════════════╣"
-    echo "║ Frontend:     http://localhost:8000                           ║"
-    echo "║ API:          http://localhost:8000/api                       ║"
+    echo "║ Frontend:     http://localhost:$ACTUAL_PORT                           ║"
+    echo "║ API:          http://localhost:$ACTUAL_PORT/api                       ║"
     echo "║ Database:     waste_management (MySQL)                        ║"
     echo "║ Log file:     server.log                                      ║"
+    echo "║ Process ID:   $SERVER_PID                                       ║"
     echo "╚════════════════════════════════════════════════════════════════╝"
     echo ""
     echo "Press Ctrl+C to stop the server"

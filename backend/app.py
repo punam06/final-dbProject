@@ -798,5 +798,28 @@ def internal_error(e):
 
 # ===== MAIN =====
 
+def find_available_port(preferred_port=8000, max_attempts=5):
+    """Find an available port starting from preferred_port"""
+    import socket
+    port = preferred_port
+    for i in range(max_attempts):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.bind(('127.0.0.1', port))
+            sock.close()
+            return port
+        except OSError:
+            port += 1
+    return preferred_port  # Fallback
+
 if __name__ == '__main__':
-    app.run(debug=False, host='127.0.0.1', port=8000, threaded=True)
+    port = find_available_port(8000)
+    print(f"\n✅ Starting Waste Management System on port {port}")
+    print(f"📍 Access at: http://localhost:{port}")
+    print(f"🌐 API at: http://localhost:{port}/api\n")
+    
+    # Only warn if port changed
+    if port != 8000:
+        print(f"⚠️  Port 8000 was in use, using port {port} instead\n")
+    
+    app.run(debug=False, host='127.0.0.1', port=port, threaded=True)

@@ -1,18 +1,34 @@
 # Dhaka Waste Management System
 
-> **🌐 FRONTEND**: **http://localhost:8000** ← Open this link after running `./run.sh`
+> **🌐 FRONTEND**: **http://localhost:8000** or **http://localhost:8001** ← Open this link after running `./run.sh`
+>
+> ℹ️ **NOTE**: If port 8000 is busy, the system automatically uses port 8001 or the next available port.
 
 A comprehensive waste management system for Dhaka city built with Flask backend, MySQL database, and responsive HTML5 frontend.
+
+## Quick Start
+
+```bash
+# Make scripts executable
+chmod +x run.sh server-quick-start.sh
+
+# Start the server
+./run.sh
+
+# OR quick restart (kills lingering processes first)
+./server-quick-start.sh
+```
 
 ## Features
 
 - **Waste Collection Management**: Track waste collection routes and schedules
 - **Team Management**: Manage collection teams and assignments
 - **Citizen Registration**: Register and track citizens and their waste disposal
-- **Payment Tracking**: Process and track waste management payments
+- **Payment Tracking**: Process and track waste management payments in BDT (৳)
 - **Recycling Centers**: Manage 5 recycling centers across Dhaka (Gulshan, Banani, Dhanmondi, Mirpur, Motijheel)
 - **Area Coverage**: Serve 5 major areas in Dhaka
 - **Reporting**: Comprehensive reports on collections, payments, and recycling
+- **Real-time Auto-Save**: All updates automatically logged to database
 
 ## Project Structure
 
@@ -23,6 +39,8 @@ api/                  - API documentation and examples
 database/             - MySQL schema and sample data
 environment/          - Configuration files
 static/               - CSS, JavaScript, images
+run.sh                - Main startup script (use this)
+server-quick-start.sh - Quick restart script (kills stuck processes first)
 ```
 
 ## Tech Stack
@@ -40,6 +58,7 @@ The system uses 11 tables with the following coverage:
 - 10 collection teams
 - 45+ sample citizen records
 - 10 payment records
+- 10 virtual views for reporting
 
 ### Dhaka Areas Served
 
@@ -230,6 +249,61 @@ sudo systemctl start mysql
 net start MySQL80
 ```
 
+## Troubleshooting
+
+### 1. Port Already In Use (Address Already In Use Error)
+**Problem**: Flask server won't start because port 8000 is busy  
+**Solution**: The system automatically detects and uses the next available port (8001, 8002, etc.)
+
+To force a clean restart:
+```bash
+./server-quick-start.sh
+```
+
+This script kills all lingering processes on ports 8000-8003 before starting fresh.
+
+### 2. Flask Server Won't Start or Crashes
+**Problem**: Server crashes immediately or doesn't respond  
+**Solution**: Restart with clean process kill:
+```bash
+./server-quick-start.sh
+```
+
+If issues persist, check logs:
+```bash
+tail -50 server.log
+```
+
+### 3. "Address Already In Use" - Force Kill All Processes
+```bash
+# Kill Flask processes
+pkill -f "backend/app.py"
+pkill -f "python.*app.py"
+
+# Kill on specific ports
+for port in 8000 8001 8002 8003; do
+    lsof -ti:$port | xargs kill -9 2>/dev/null || true
+done
+
+sleep 2
+python3 backend/app.py
+```
+
+### 4. MySQL Connection Error
+**Problem**: Can't connect to database  
+**Solution**: Ensure MySQL is running and initialized:
+```bash
+# Test MySQL
+mysql -u root -e "SELECT 1;"
+
+# Initialize database if needed
+mysql -u root < database/schema.sql
+```
+
+### 5. Page Not Loading or CSS Missing
+**Problem**: Pages load but styling is broken  
+**Solution**: Clear browser cache (Cmd+Shift+R) or restart server
+
 ### Dependencies Issues
 Reinstall dependencies:
 ```bash
@@ -245,6 +319,7 @@ mysql -u root -p < database/schema.sql
 ## Project Files
 
 - `run.sh` - Automated startup script (recommended)
+- `server-quick-start.sh` - Quick restart with process cleanup (USE THIS if server won't start)
 - `backend/app.py` - Flask application with all API endpoints
 - `frontend/templates/` - HTML templates for UI
 - `database/schema.sql` - MySQL database schema with sample data
@@ -261,5 +336,5 @@ For issues or questions about this project, please create an issue in the GitHub
 **Project Status**: Production Ready  
 **Last Updated**: December 2025  
 **Database**: Dhaka City Waste Management  
-**Frontend Port**: 8000  
+**Frontend Port**: 8000+ (auto-detects available port)  
 **Repository**: https://github.com/punam06/final-dbProject.git

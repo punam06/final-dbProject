@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Team Assignments - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Team Staff Assignments</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Assign Staff to Team</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Assign Staff to Team</h3>
+            <form id="assignmentForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="assignmentId">
+                
+                <div class="form-group">
+                    <label for="crew_id">Team *</label>
+                    <select id="crew_id" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="staff_id">Staff Member *</label>
+                    <select id="staff_id" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role *</label>
+                    <input type="text" id="role" required placeholder="e.g., Team Lead, Driver, Field Staff">
+                </div>
+
+                <div class="form-group">
+                    <label for="assignment_date">Assignment Date *</label>
+                    <input type="date" id="assignment_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status">
+                        <option value="Assigned">Assigned</option>
+                        <option value="Unassigned">Unassigned</option>
+                        <option value="On Leave">On Leave</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save Assignment</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Team</th>
+                    <th>Staff Member</th>
+                    <th>Position</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Assignment Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="assignmentTable">
+                <tr class="loading-row">
+                    <td colspan="8">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ASSIGNMENTS_API = '/api/assignments';
+const CREWS_API = '/api/crew';
+const STAFF_API = '/api/staff';
+
+let currentEditingId = null;
+
+// Load teams dropdown
+async function loadTeams() {
+    try {
+        const response = await fetch(CREWS_API);
+        const teams = await response.json();
+        const select = document.getElementById('crew_id');
+        select.innerHTML = '<option value="">Select Team</option>';
+        teams.forEach(team => {
+            const option = document.createElement('option');
+            option.value = team.crew_id;
+            option.textContent = team.team_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading teams:', error);
+    }
+}
+
+// Load staff dropdown
+async function loadStaffMembers() {
+    try {
+        const response = await fetch(STAFF_API);
+        const staff = await response.json();
+        const select = document.getElementById('staff_id');
+        select.innerHTML = '<option value="">Select Staff Member</option>';
+        staff.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member.staff_id;
+            option.textContent = `${member.staff_name} (${member.position})`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading staff:', error);
+    }
+}
+
+// Load assignments data
+async function loadAssignments() {
+    try {
+        const response = await fetch(ASSIGNMENTS_API);
+        const assignments = await response.json();
+        const table = document.getElementById('assignmentTable');
+        
+        if (assignments.length === 0) {
+            table.innerHTML = '<tr><td colspan="8" class="no-data">No assignments found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = assignments.map(assignment => `
+            <tr>
+                <td>${assignment.assigned_id}</td>
+                <td>${assignment.team_name}</td>
+                <td>${assignment.staff_name}</td>
+                <td>${assignment.position}</td>
+                <td>${assignment.role}</td>
+                <td><span class="badge badge-${assignment.status.toLowerCase()}">${assignment.status}</span></td>
+                <td>${assignment.assignment_date}</td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editAssignment(${assignment.assigned_id})">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteAssignment(${assignment.assigned_id})">Remove</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading assignments:', error);
+        document.getElementById('assignmentTable').innerHTML = '<tr><td colspan="8" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Assign Staff to Team';
+    document.getElementById('assignmentForm').reset();
+    document.getElementById('assignment_date').valueAsDate = new Date();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit assignment
+async function editAssignment(id) {
+    try {
+        const response = await fetch(`${ASSIGNMENTS_API}/${id}`);
+        const assignment = await response.json();
+        
+        document.getElementById('assignmentId').value = assignment.assigned_id;
+        document.getElementById('crew_id').value = assignment.crew_id;
+        document.getElementById('staff_id').value = assignment.staff_id;
+        document.getElementById('role').value = assignment.role;
+        document.getElementById('assignment_date').value = assignment.assignment_date;
+        document.getElementById('status').value = assignment.status;
+        
+        document.getElementById('formTitle').textContent = 'Edit Assignment';
+        document.getElementById('formContainer').style.display = 'block';
+        currentEditingId = id;
+    } catch (error) {
+        console.error('Error loading assignment:', error);
+        alert('Error loading assignment data');
+    }
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        crew_id: document.getElementById('crew_id').value,
+        staff_id: document.getElementById('staff_id').value,
+        role: document.getElementById('role').value,
+        assignment_date: document.getElementById('assignment_date').value,
+        status: document.getElementById('status').value
+    };
+
+    try {
+        const url = currentEditingId ? `${ASSIGNMENTS_API}/${currentEditingId}` : ASSIGNMENTS_API;
+        const method = currentEditingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadAssignments();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving assignment');
+    }
+}
+
+// Delete assignment
+async function deleteAssignment(id) {
+    if (confirm('Are you sure you want to remove this assignment?')) {
+        try {
+            const response = await fetch(`${ASSIGNMENTS_API}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadAssignments();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting assignment:', error);
+            alert('Error removing assignment');
+        }
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('assignmentForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadTeams();
+    loadStaffMembers();
+    loadAssignments();
+});
+</script>
+{% endblock %}

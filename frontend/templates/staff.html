@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Staff - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Staff Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Staff Member</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Add New Staff Member</h3>
+            <form id="staffForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="staffId">
+                
+                <div class="form-group">
+                    <label for="staff_name">Staff Name *</label>
+                    <input type="text" id="staff_name" required placeholder="Enter staff member name">
+                </div>
+
+                <div class="form-group">
+                    <label for="position">Position *</label>
+                    <input type="text" id="position" required placeholder="e.g., Team Lead, Driver, Field Staff">
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">Contact *</label>
+                    <input type="text" id="contact" required placeholder="Enter 10-digit contact number">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter email address">
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="On Leave">On Leave</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="staffTable">
+                <tr class="loading-row">
+                    <td colspan="7">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_URL = '/api/staff';
+let currentEditingId = null;
+
+// Load staff data
+async function loadStaff() {
+    try {
+        const response = await fetch(API_URL);
+        const staff = await response.json();
+        const table = document.getElementById('staffTable');
+        
+        if (staff.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" class="no-data">No staff members found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = staff.map(member => `
+            <tr>
+                <td>${member.staff_id}</td>
+                <td>${member.staff_name}</td>
+                <td>${member.position}</td>
+                <td>${member.contact}</td>
+                <td>${member.email}</td>
+                <td><span class="badge badge-${member.status.toLowerCase()}">${member.status}</span></td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editStaff(${member.staff_id})">Edit</button>
+                    <button class="btn btn-small btn-info" onclick="viewTeams(${member.staff_id})">Teams</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteStaff(${member.staff_id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading staff:', error);
+        document.getElementById('staffTable').innerHTML = '<tr><td colspan="7" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Add New Staff Member';
+    document.getElementById('staffForm').reset();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit staff member
+async function editStaff(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const staff = await response.json();
+        
+        document.getElementById('staffId').value = staff.staff_id;
+        document.getElementById('staff_name').value = staff.staff_name;
+        document.getElementById('position').value = staff.position;
+        document.getElementById('contact').value = staff.contact;
+        document.getElementById('email').value = staff.email;
+        document.getElementById('status').value = staff.status;
+        
+        document.getElementById('formTitle').textContent = 'Edit Staff Member';
+        document.getElementById('formContainer').style.display = 'block';
+        currentEditingId = id;
+    } catch (error) {
+        console.error('Error loading staff:', error);
+        alert('Error loading staff data');
+    }
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        staff_name: document.getElementById('staff_name').value,
+        position: document.getElementById('position').value,
+        contact: document.getElementById('contact').value,
+        email: document.getElementById('email').value,
+        status: document.getElementById('status').value
+    };
+
+    try {
+        const url = currentEditingId ? `${API_URL}/${currentEditingId}` : API_URL;
+        const method = currentEditingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadStaff();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving staff member');
+    }
+}
+
+// Delete staff member
+async function deleteStaff(id) {
+    if (confirm('Are you sure you want to delete this staff member?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadStaff();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting staff:', error);
+            alert('Error deleting staff member');
+        }
+    }
+}
+
+// View teams for a staff member
+async function viewTeams(staffId) {
+    try {
+        const response = await fetch(`/api/staff/${staffId}/teams`);
+        const teams = await response.json();
+        
+        if (teams.length === 0) {
+            alert('This staff member is not assigned to any team yet.');
+            return;
+        }
+
+        let message = 'Teams assigned to this staff member:\n\n';
+        teams.forEach((team, index) => {
+            message += `${index + 1}. ${team.team_name}\n   Role: ${team.role}\n   Status: ${team.status}\n\n`;
+        });
+        
+        alert(message);
+    } catch (error) {
+        console.error('Error loading teams:', error);
+        alert('Error loading team assignments');
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('staffForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadStaff();
+});
+</script>
+{% endblock %}

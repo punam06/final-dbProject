@@ -255,6 +255,14 @@ def areas_page():
 def crew_page():
     return render_template('crew.html')
 
+@app.route('/staff')
+def staff_page():
+    return render_template('staff.html')
+
+@app.route('/assignments')
+def assignments_page():
+    return render_template('assignments.html')
+
 @app.route('/waste')
 def waste_page():
     return render_template('waste.html')
@@ -792,6 +800,153 @@ def citizens_list():
 @app.route('/api/crews-list')
 def crews_list():
     results = execute_query("SELECT crew_id, crew_name FROM Crew")
+    return jsonify(results)
+
+# ===== STAFF API (Individual Team Members) =====
+
+@app.route('/api/staff', methods=['GET', 'POST'])
+def api_staff():
+    if request.method == 'GET':
+        query = "SELECT staff_id, staff_name, position, contact, email, status FROM Staff ORDER BY staff_name"
+        results = execute_query(query)
+        return jsonify(results)
+    
+    elif request.method == 'POST':
+        data = request.json
+        try:
+            query = """INSERT INTO Staff (staff_name, position, contact, email, status)
+                      VALUES (%s, %s, %s, %s, %s)"""
+            params = (data['staff_name'], data.get('position', ''), data['contact'], 
+                     data.get('email', ''), data.get('status', 'Active'))
+            
+            if execute_update(query, params):
+                return jsonify({'success': True, 'message': 'Staff member added successfully'})
+            return jsonify({'success': False, 'message': 'Failed to add staff member'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/staff/<int:staff_id>', methods=['GET', 'PUT', 'DELETE'])
+def api_staff_detail(staff_id):
+    if request.method == 'GET':
+        query = "SELECT staff_id, staff_name, position, contact, email, status FROM Staff WHERE staff_id = %s"
+        result = execute_query(query, (staff_id,), fetch_all=False)
+        return jsonify(result) if result else jsonify({}), 404 if not result else 200
+    
+    elif request.method == 'PUT':
+        data = request.json
+        try:
+            query = """UPDATE Staff SET staff_name=%s, position=%s, contact=%s, email=%s, status=%s 
+                      WHERE staff_id=%s"""
+            params = (data['staff_name'], data.get('position', ''), data['contact'], 
+                     data.get('email', ''), data.get('status', 'Active'), staff_id)
+            
+            if execute_update(query, params):
+                return jsonify({'success': True, 'message': 'Staff member updated successfully'})
+            return jsonify({'success': False, 'message': 'Failed to update staff member'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+    
+    elif request.method == 'DELETE':
+        try:
+            query = "DELETE FROM Staff WHERE staff_id=%s"
+            if execute_update(query, (staff_id,)):
+                return jsonify({'success': True, 'message': 'Staff member deleted successfully'})
+            return jsonify({'success': False, 'message': 'Failed to delete staff member'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+
+# ===== ASSIGNMENT API (Assign Staff to Teams) =====
+
+@app.route('/api/assignments', methods=['GET', 'POST'])
+def api_assignments():
+    if request.method == 'GET':
+        # Get assignments with team and staff details
+        query = """SELECT 
+                    a.assigned_id, a.crew_id, c.team_name, a.staff_id, s.staff_name, 
+                    s.position, a.role, a.status, a.assignment_date
+                   FROM Assigned a
+                   JOIN Crew c ON a.crew_id = c.crew_id
+                   JOIN Staff s ON a.staff_id = s.staff_id
+                   ORDER BY c.team_name, s.staff_name"""
+        results = execute_query(query)
+        return jsonify(results)
+    
+    elif request.method == 'POST':
+        data = request.json
+        try:
+            query = """INSERT INTO Assigned (crew_id, staff_id, assignment_date, role, status)
+                      VALUES (%s, %s, %s, %s, %s)"""
+            params = (data['crew_id'], data['staff_id'], data.get('assignment_date'), 
+                     data.get('role', 'Staff Member'), data.get('status', 'Assigned'))
+            
+            if execute_update(query, params):
+                return jsonify({'success': True, 'message': 'Staff assigned to team successfully'})
+            return jsonify({'success': False, 'message': 'Failed to assign staff'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/assignments/<int:assigned_id>', methods=['GET', 'PUT', 'DELETE'])
+def api_assignment_detail(assigned_id):
+    if request.method == 'GET':
+        query = """SELECT 
+                    a.assigned_id, a.crew_id, c.team_name, a.staff_id, s.staff_name, 
+                    s.position, a.role, a.status, a.assignment_date
+                   FROM Assigned a
+                   JOIN Crew c ON a.crew_id = c.crew_id
+                   JOIN Staff s ON a.staff_id = s.staff_id
+                   WHERE a.assigned_id = %s"""
+        result = execute_query(query, (assigned_id,), fetch_all=False)
+        return jsonify(result) if result else jsonify({}), 404 if not result else 200
+    
+    elif request.method == 'PUT':
+        data = request.json
+        try:
+            query = """UPDATE Assigned SET crew_id=%s, staff_id=%s, assignment_date=%s, role=%s, status=%s 
+                      WHERE assigned_id=%s"""
+            params = (data['crew_id'], data['staff_id'], data.get('assignment_date'), 
+                     data.get('role', 'Staff Member'), data.get('status', 'Assigned'), assigned_id)
+            
+            if execute_update(query, params):
+                return jsonify({'success': True, 'message': 'Assignment updated successfully'})
+            return jsonify({'success': False, 'message': 'Failed to update assignment'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+    
+    elif request.method == 'DELETE':
+        try:
+            query = "DELETE FROM Assigned WHERE assigned_id=%s"
+            if execute_update(query, (assigned_id,)):
+                return jsonify({'success': True, 'message': 'Assignment removed successfully'})
+            return jsonify({'success': False, 'message': 'Failed to remove assignment'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+
+# ===== TEAM STAFF API (Get all staff in a specific team) =====
+
+@app.route('/api/team/<int:crew_id>/staff', methods=['GET'])
+def api_team_staff(crew_id):
+    """Get all staff members assigned to a specific team"""
+    query = """SELECT 
+                a.assigned_id, s.staff_id, s.staff_name, s.position, s.contact, 
+                a.role, a.status, a.assignment_date
+               FROM Assigned a
+               JOIN Staff s ON a.staff_id = s.staff_id
+               WHERE a.crew_id = %s
+               ORDER BY a.role DESC, s.staff_name"""
+    results = execute_query(query, (crew_id,))
+    return jsonify(results)
+
+@app.route('/api/staff/<int:staff_id>/teams', methods=['GET'])
+def api_staff_teams(staff_id):
+    """Get all teams a staff member is assigned to"""
+    query = """SELECT 
+                a.assigned_id, c.crew_id, c.team_name, c.contact, c.area_id,
+                a.role, a.status, a.assignment_date
+               FROM Assigned a
+               JOIN Crew c ON a.crew_id = c.crew_id
+               WHERE a.staff_id = %s
+               ORDER BY c.team_name"""
+    results = execute_query(query, (staff_id,))
     return jsonify(results)
 
 @app.route('/api/bills-list')

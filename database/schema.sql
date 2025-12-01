@@ -112,15 +112,32 @@ CREATE TABLE Collection_Schedule (
     FOREIGN KEY (area_id) REFERENCES Area(area_id) ON DELETE CASCADE
 );
 
+-- Staff Table: Individual team members
+CREATE TABLE Staff (
+    staff_id INT PRIMARY KEY AUTO_INCREMENT,
+    staff_name VARCHAR(100) NOT NULL,
+    position VARCHAR(100),
+    contact VARCHAR(20) NOT NULL,
+    email VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'Active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT check_staff_contact CHECK (contact REGEXP '^[0-9]{10,}$'),
+    CONSTRAINT check_staff_status CHECK (status IN ('Active', 'Inactive', 'On Leave'))
+);
+
+-- Assigned Table: Link individual staff members to teams
 CREATE TABLE Assigned (
     assigned_id INT PRIMARY KEY AUTO_INCREMENT,
-    team_id INT NOT NULL,
-    team_name VARCHAR(100),
     crew_id INT NOT NULL,
-    area_id INT NOT NULL,
+    staff_id INT NOT NULL,
+    assignment_date DATE NOT NULL,
+    role VARCHAR(50),
+    status VARCHAR(20) DEFAULT 'Assigned',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (crew_id) REFERENCES Crew(crew_id) ON DELETE CASCADE,
-    FOREIGN KEY (area_id) REFERENCES Area(area_id) ON DELETE CASCADE
+    FOREIGN KEY (staff_id) REFERENCES Staff(staff_id) ON DELETE CASCADE,
+    CONSTRAINT check_assignment_status CHECK (status IN ('Assigned', 'Unassigned', 'On Leave')),
+    UNIQUE KEY unique_staff_crew (crew_id, staff_id)
 );
 
 -- ===== ADD CONSTRAINTS =====
@@ -173,7 +190,8 @@ CREATE INDEX idx_schedule_area ON Has_Schedule(area_id);
 CREATE INDEX idx_schedule_crew ON Has_Schedule(crew_id);
 CREATE INDEX idx_collection_area ON Collection_Schedule(area_id);
 CREATE INDEX idx_assigned_crew ON Assigned(crew_id);
-CREATE INDEX idx_assigned_area ON Assigned(area_id);
+CREATE INDEX idx_assigned_staff ON Assigned(staff_id);
+CREATE INDEX idx_staff_contact ON Staff(contact);
 
 -- ===== INSERT TEST DATA - DHAKA CONTEXT (ENGLISH ONLY) =====
 
@@ -210,6 +228,52 @@ INSERT INTO Crew (team_name, contact, area_id, team_size) VALUES
 ('Mirpur Waste Management', '01800444445', 4, 4),
 ('Motijheel Recycling Team', '01800555555', 5, 5),
 ('Motijheel Collection Team', '01800555556', 5, 3);
+
+-- Staff (Individual Team Members - English Names)
+INSERT INTO Staff (staff_name, position, contact, email, status) VALUES
+('Ahmed Ali', 'Team Lead', '01900111111', 'ahmed.ali@waste.com', 'Active'),
+('Fatima Khan', 'Supervisor', '01900111112', 'fatima.khan@waste.com', 'Active'),
+('Hassan Ibrahim', 'Driver', '01900111113', 'hassan@waste.com', 'Active'),
+('Zainab Hossain', 'Field Staff', '01900111114', 'zainab@waste.com', 'Active'),
+('Karim Ahmed', 'Team Lead', '01900222221', 'karim@waste.com', 'Active'),
+('Nasrin Begum', 'Supervisor', '01900222222', 'nasrin@waste.com', 'Active'),
+('Rashed Islam', 'Driver', '01900222223', 'rashed@waste.com', 'Active'),
+('Sajida Khan', 'Field Staff', '01900222224', 'sajida@waste.com', 'Active'),
+('Samir Hassan', 'Team Lead', '01900333331', 'samir@waste.com', 'Active'),
+('Rashida Akter', 'Supervisor', '01900333332', 'rashida@waste.com', 'Active'),
+('Tariq Abdullah', 'Driver', '01900333333', 'tariq@waste.com', 'Active'),
+('Yasmin Ali', 'Field Staff', '01900333334', 'yasmin@waste.com', 'Active'),
+('Rafiq Khan', 'Team Lead', '01900444441', 'rafiq@waste.com', 'Active'),
+('Sheema Das', 'Supervisor', '01900444442', 'sheema@waste.com', 'Active'),
+('Wahid Ahmed', 'Driver', '01900444443', 'wahid@waste.com', 'Active'),
+('Rina Saha', 'Field Staff', '01900444444', 'rina@waste.com', 'Active'),
+('Siddique Islam', 'Team Lead', '01900555551', 'siddique@waste.com', 'Active'),
+('Tania Rahman', 'Supervisor', '01900555552', 'tania@waste.com', 'Active'),
+('Usman Khan', 'Driver', '01900555553', 'usman@waste.com', 'Active'),
+('Vina Rani', 'Field Staff', '01900555554', 'vina@waste.com', 'Active');
+
+-- Assigned (Staff assignments to Teams)
+INSERT INTO Assigned (crew_id, staff_id, assignment_date, role, status) VALUES
+(1, 1, '2025-01-01', 'Team Lead', 'Assigned'),
+(1, 2, '2025-01-01', 'Supervisor', 'Assigned'),
+(1, 3, '2025-01-01', 'Driver', 'Assigned'),
+(1, 4, '2025-01-01', 'Field Staff', 'Assigned'),
+(2, 5, '2025-01-01', 'Team Lead', 'Assigned'),
+(2, 6, '2025-01-01', 'Supervisor', 'Assigned'),
+(2, 7, '2025-01-01', 'Driver', 'Assigned'),
+(3, 8, '2025-01-01', 'Field Staff', 'Assigned'),
+(3, 9, '2025-01-01', 'Team Lead', 'Assigned'),
+(3, 10, '2025-01-01', 'Supervisor', 'Assigned'),
+(4, 11, '2025-01-01', 'Driver', 'Assigned'),
+(4, 12, '2025-01-01', 'Field Staff', 'Assigned'),
+(5, 13, '2025-01-01', 'Team Lead', 'Assigned'),
+(5, 14, '2025-01-01', 'Supervisor', 'Assigned'),
+(6, 15, '2025-01-01', 'Driver', 'Assigned'),
+(6, 16, '2025-01-01', 'Field Staff', 'Assigned'),
+(7, 17, '2025-01-01', 'Team Lead', 'Assigned'),
+(7, 18, '2025-01-01', 'Supervisor', 'Assigned'),
+(8, 19, '2025-01-01', 'Driver', 'Assigned'),
+(8, 20, '2025-01-01', 'Field Staff', 'Assigned');
 
 -- Bins (Dhaka Locations - English Names)
 INSERT INTO Bins (bin_number, status, fill_level, location, area_id, sensor) VALUES
@@ -282,12 +346,6 @@ INSERT INTO Has_Schedule (area_id, crew_id, schedule_date) VALUES
 (1, 1, '2025-01-05'), (1, 2, '2025-01-06'), (2, 3, '2025-01-07'), (2, 4, '2025-01-08'),
 (3, 5, '2025-01-09'), (3, 6, '2025-01-10'), (4, 7, '2025-01-11'), (4, 8, '2025-01-12'),
 (5, 9, '2025-01-13'), (5, 10, '2025-01-14');
-
--- Assigned
-INSERT INTO Assigned (team_id, team_name, crew_id, area_id) VALUES
-(1, 'Team One', 1, 1), (2, 'Team Two', 2, 1), (3, 'Team Three', 3, 2), (4, 'Team Four', 4, 2),
-(5, 'Team Five', 5, 3), (6, 'Team Six', 6, 3), (7, 'Team Seven', 7, 4), (8, 'Team Eight', 8, 4),
-(9, 'Team Nine', 9, 5), (10, 'Team Ten', 10, 5);
 
 -- ===== CREATE VIEWS FOR EASY DATA ACCESS =====
 

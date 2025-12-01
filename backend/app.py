@@ -1015,6 +1015,32 @@ def page_not_found(e):
 def internal_error(e):
     return "Internal Server Error (500)", 500
 
+# ===== STATIC FILES CONFIGURATION =====
+
+@app.after_request
+def add_header(response):
+    """Add headers to ensure CSS and JS are properly cached and loaded"""
+    # Allow CSS and JS to be cached but always check for updates
+    if response.content_type and ('css' in response.content_type or 'javascript' in response.content_type):
+        response.cache_control.max_age = 3600  # Cache for 1 hour
+        response.cache_control.public = True
+    else:
+        response.cache_control.no_cache = True
+    
+    # Ensure MIME types are correct based on request path
+    if request.path.endswith('.css'):
+        response.content_type = 'text/css; charset=utf-8'
+    elif request.path.endswith('.js'):
+        response.content_type = 'application/javascript; charset=utf-8'
+    
+    return response
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """Explicitly serve static files"""
+    from flask import send_from_directory
+    return send_from_directory(static_dir, filename)
+
 # ===== MAIN =====
 
 def find_available_port(preferred_port=8000, max_attempts=5):

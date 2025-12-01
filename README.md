@@ -1,5 +1,7 @@
 # Dhaka Waste Management System
 
+> **🌐 FRONTEND**: **http://localhost:8000** ← Open this link after running `./run.sh`
+
 A comprehensive waste management system for Dhaka city built with Flask backend, MySQL database, and responsive HTML5 frontend.
 
 ## Features

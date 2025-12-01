@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Crew - Waste Management System{% endblock %}
+{% block title %}Team - Waste Management System{% endblock %}
 
 {% block content %}
 <section class="page-section">
     <div class="section-header">
-        <h2 class="section-title">Crew Management</h2>
-        <button class="btn btn-primary" onclick="showAddForm()">+ Add Crew</button>
+        <h2 class="section-title">Team Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Team</button>
     </div>
 
     <!-- Add/Edit Form -->
     <div id="formContainer" class="form-container" style="display: none;">
         <div class="form-card">
-            <h3 id="formTitle">Add New Crew</h3>
+            <h3 id="formTitle">Add New Team</h3>
             <form id="crewForm" onsubmit="submitForm(event)">
                 <input type="hidden" id="crewId">
                 
@@ -50,7 +50,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Crew Name</th>
+                    <th>Team Name</th>
                     <th>Contact</th>
                     <th>Area</th>
                     <th>Team Size</th>
@@ -91,7 +91,7 @@ async function loadAreas() {
     }
 }
 
-// Load crew data
+// Load team data
 async function loadCrew() {
     try {
         const response = await fetch(API_URL);
@@ -99,7 +99,7 @@ async function loadCrew() {
         const table = document.getElementById('crewTable');
         
         if (crews.length === 0) {
-            table.innerHTML = '<tr><td colspan="6" class="no-data">No crew found</td></tr>';
+            table.innerHTML = '<tr><td colspan="6" class="no-data">No team found</td></tr>';
             return;
         }
 
@@ -125,7 +125,7 @@ async function loadCrew() {
 // Show add form
 function showAddForm() {
     currentEditingId = null;
-    document.getElementById('formTitle').textContent = 'Add New Crew';
+    document.getElementById('formTitle').textContent = 'Add New Team';
     document.getElementById('crewForm').reset();
     document.getElementById('formContainer').style.display = 'block';
 }
@@ -142,12 +142,12 @@ async function editCrew(id) {
         document.getElementById('area_id').value = crew.area_id;
         document.getElementById('team_size').value = crew.team_size;
         
-        document.getElementById('formTitle').textContent = 'Edit Crew';
+        document.getElementById('formTitle').textContent = 'Edit Team';
         document.getElementById('formContainer').style.display = 'block';
         currentEditingId = id;
     } catch (error) {
         console.error('Error loading crew:', error);
-        alert('Error loading crew data');
+        alert('Error loading team data');
     }
 }
 
@@ -183,13 +183,13 @@ async function submitForm(event) {
         }
     } catch (error) {
         console.error('Error submitting form:', error);
-        alert('Error saving crew');
+        alert('Error saving team');
     }
 }
 
 // Delete crew
 async function deleteCrew(id) {
-    if (confirm('Are you sure you want to delete this crew?')) {
+    if (confirm('Are you sure you want to delete this team?')) {
         try {
             const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
             const result = await response.json();
@@ -201,8 +201,8 @@ async function deleteCrew(id) {
                 alert('Error: ' + result.error);
             }
         } catch (error) {
-            console.error('Error deleting crew:', error);
-            alert('Error deleting crew');
+            console.error('Error deleting team:', error);
+            alert('Error deleting team');
         }
     }
 }

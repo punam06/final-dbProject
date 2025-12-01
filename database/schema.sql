@@ -736,3 +736,36 @@ DELETE FROM Citizen WHERE citizen_id=16;
 -- Status: Successfully executed and logged
 -- ========================================
 UPDATE Area SET area_name='Gulshan Updated', location='Updated Gulshan Location', population=900000 WHERE area_id=1;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Area
+-- Timestamp: 2025-12-01 14:57:14
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Area (area_name, location, population) VALUES ('Test Area Auto-Save', 'Test Location', 100000);
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Area
+-- Timestamp: 2025-12-01 14:57:15
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Area SET area_name='Gulshan Auto-Save Test', location='Updated Location', population=950000 WHERE area_id=1;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Area
+-- Timestamp: 2025-12-01 14:57:24
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Area SET area_name='Gulshan Auto-Save Test', location='Updated Location', population=950000 WHERE area_id=1;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:57:42
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Citizen SET name='Final Verification Test', address='Test Address Verified', contact='01700999999', area_id=1, email='verified@test.com' 
+                      WHERE citizen_id=3;

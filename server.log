@@ -8,19 +8,7 @@
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:8000
 [33mPress CTRL+C to quit[0m
-127.0.0.1 - - [01/Dec/2025 14:54:32] "GET /api/areas HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:54:39] "POST /api/citizens HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:54:55] "[31m[1mPUT /api/citizens/3 HTTP/1.1[0m" 400 -
-127.0.0.1 - - [01/Dec/2025 14:55:00] "GET /api/citizens HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:55:05] "PUT /api/citizens/4 HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:55:16] "POST /api/citizens HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:55:21] "GET /api/citizens HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:55:24] "DELETE /api/citizens/16 HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:55:37] "PUT /api/areas/1 HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:55:51] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:56:27] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:56:27] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
-127.0.0.1 - - [01/Dec/2025 14:56:27] "[36mGET /static/common.js HTTP/1.1[0m" 304 -
-127.0.0.1 - - [01/Dec/2025 14:56:54] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:56:54] "[36mGET /static/styles.css HTTP/1.1[0m" 304 -
-127.0.0.1 - - [01/Dec/2025 14:56:54] "[36mGET /static/common.js HTTP/1.1[0m" 304 -
+127.0.0.1 - - [01/Dec/2025 15:01:45] "GET /crew HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:01:53] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:01:58] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 15:02:03] "GET / HTTP/1.1" 200 -

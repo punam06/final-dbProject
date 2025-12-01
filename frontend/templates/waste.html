@@ -46,6 +46,22 @@
                     <select id="citizen_id" required></select>
                 </div>
 
+                <div class="form-group">
+                    <label for="status">Status *</label>
+                    <select id="status" required>
+                        <option value="">Select Status</option>
+                        <option value="Collected">Collected</option>
+                        <option value="Recycled">Recycled</option>
+                        <option value="Disposed">Disposed</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="center_id">Recycling Center</label>
+                    <select id="center_id"></select>
+                </div>
+
                 <div class="form-buttons">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
@@ -64,13 +80,15 @@
                     <th>Name</th>
                     <th>Category</th>
                     <th>Weight (kg)</th>
+                    <th>Status</th>
                     <th>Citizen</th>
+                    <th>Center</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="wasteTable">
                 <tr class="loading-row">
-                    <td colspan="7">Loading...</td>
+                    <td colspan="9">Loading...</td>
                 </tr>
             </tbody>
         </table>
@@ -82,6 +100,7 @@
 <script>
 const API_URL = '/api/waste';
 const CITIZENS_API = '/api/citizens-list';
+const CENTERS_API = '/api/centers';
 let currentEditingId = null;
 
 // Load citizens dropdown
@@ -102,6 +121,24 @@ async function loadCitizens() {
     }
 }
 
+// Load centers dropdown
+async function loadCenters() {
+    try {
+        const response = await fetch(CENTERS_API);
+        const centers = await response.json();
+        const select = document.getElementById('center_id');
+        select.innerHTML = '<option value="1">Default Center</option>';
+        centers.forEach(center => {
+            const option = document.createElement('option');
+            option.value = center.center_id;
+            option.textContent = `${center.location} (${center.recycled_waste_kg} kg)`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading centers:', error);
+    }
+}
+
 // Load waste data
 async function loadWaste() {
     try {
@@ -110,7 +147,7 @@ async function loadWaste() {
         const table = document.getElementById('wasteTable');
         
         if (waste.length === 0) {
-            table.innerHTML = '<tr><td colspan="7" class="no-data">No waste found</td></tr>';
+            table.innerHTML = '<tr><td colspan="9" class="no-data">No waste found</td></tr>';
             return;
         }
 
@@ -121,7 +158,9 @@ async function loadWaste() {
                 <td>${w.name}</td>
                 <td><span class="category-badge">${w.category}</span></td>
                 <td>${parseFloat(w.weight).toFixed(2)}</td>
+                <td><span class="status-badge status-${w.status.toLowerCase()}">${w.status}</span></td>
                 <td>${w.citizen_name}</td>
+                <td>${w.center_location || 'N/A'}</td>
                 <td class="actions">
                     <button class="btn btn-small" onclick="editWaste(${w.waste_id})">Edit</button>
                     <button class="btn btn-small btn-danger" onclick="deleteWaste(${w.waste_id})">Delete</button>
@@ -130,7 +169,7 @@ async function loadWaste() {
         `).join('');
     } catch (error) {
         console.error('Error loading waste:', error);
-        document.getElementById('wasteTable').innerHTML = '<tr><td colspan="7" class="error">Error loading data</td></tr>';
+        document.getElementById('wasteTable').innerHTML = '<tr><td colspan="9" class="error">Error loading data</td></tr>';
     }
 }
 
@@ -154,6 +193,8 @@ async function editWaste(id) {
         document.getElementById('category').value = waste.category;
         document.getElementById('weight').value = waste.weight;
         document.getElementById('citizen_id').value = waste.citizen_id;
+        document.getElementById('status').value = waste.status || 'Collected';
+        document.getElementById('center_id').value = waste.center_id || 1;
         
         document.getElementById('formTitle').textContent = 'Edit Waste';
         document.getElementById('formContainer').style.display = 'block';
@@ -173,7 +214,9 @@ async function submitForm(event) {
         name: document.getElementById('name').value,
         category: document.getElementById('category').value,
         weight: document.getElementById('weight').value,
-        citizen_id: document.getElementById('citizen_id').value
+        citizen_id: document.getElementById('citizen_id').value,
+        status: document.getElementById('status').value,
+        center_id: parseInt(document.getElementById('center_id').value) || 1
     };
 
     try {
@@ -231,6 +274,7 @@ function hideForm() {
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadCitizens();
+    loadCenters();
     loadWaste();
 });
 </script>

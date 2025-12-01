@@ -31,11 +31,6 @@
                     <input type="text" id="operational_hours" required placeholder="e.g., 8:00 AM - 6:00 PM">
                 </div>
 
-                <div class="form-group">
-                    <label for="recycled_waste_kg">Recycled Waste (kg)</label>
-                    <input type="number" id="recycled_waste_kg" step="0.01" placeholder="Enter recycled waste amount">
-                </div>
-
                 <div class="form-buttons">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
@@ -122,7 +117,6 @@ async function editCenter(id) {
         document.getElementById('location').value = center.location;
         document.getElementById('capacity').value = center.capacity;
         document.getElementById('operational_hours').value = center.operational_hours;
-        document.getElementById('recycled_waste_kg').value = center.recycled_waste_kg || 0;
         document.getElementById('formTitle').textContent = 'Edit Recycling Center';
         document.getElementById('formContainer').style.display = 'block';
     } catch (error) {
@@ -138,8 +132,7 @@ async function submitForm(event) {
     const formData = {
         location: document.getElementById('location').value,
         capacity: document.getElementById('capacity').value,
-        operational_hours: document.getElementById('operational_hours').value,
-        recycled_waste_kg: parseFloat(document.getElementById('recycled_waste_kg').value) || 0
+        operational_hours: document.getElementById('operational_hours').value
     };
 
     try {

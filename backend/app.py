@@ -592,19 +592,20 @@ def api_crew_detail(crew_id):
 @app.route('/api/waste', methods=['GET', 'POST'])
 def api_waste():
     if request.method == 'GET':
-        query = """SELECT w.waste_id, w.name, w.waste_type, w.category, w.weight, w.status,
-                          c.citizen_id, c.name as citizen_name
+        query = """SELECT w.waste_id, w.name, w.waste_type, w.category, w.weight, w.status, w.center_id,
+                          c.citizen_id, c.name as citizen_name, rc.location as center_location
                    FROM Waste w 
-                   JOIN Citizen c ON w.citizen_id = c.citizen_id"""
+                   JOIN Citizen c ON w.citizen_id = c.citizen_id
+                   LEFT JOIN Recycling_Center rc ON w.center_id = rc.center_id"""
         results = execute_query(query)
         return jsonify(results)
     
     elif request.method == 'POST':
         data = request.json
         try:
-            query = """INSERT INTO Waste (waste_type, name, category, weight, citizen_id, status)
-                      VALUES (%s, %s, %s, %s, %s, %s)"""
-            params = (data['waste_type'], data['name'], data['category'], data['weight'], data['citizen_id'], data.get('status', 'Collected'))
+            query = """INSERT INTO Waste (waste_type, name, category, weight, citizen_id, status, center_id)
+                      VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+            params = (data['waste_type'], data['name'], data['category'], data['weight'], data['citizen_id'], data.get('status', 'Collected'), data.get('center_id', 1))
             
             if execute_update(query, params):
                 return jsonify({'success': True, 'message': 'Waste added successfully'})
@@ -615,10 +616,11 @@ def api_waste():
 @app.route('/api/waste/<int:waste_id>', methods=['GET', 'PUT', 'DELETE'])
 def api_waste_detail(waste_id):
     if request.method == 'GET':
-        query = """SELECT w.waste_id, w.name, w.waste_type, w.category, w.weight, w.status,
-                          c.citizen_id, c.name as citizen_name
+        query = """SELECT w.waste_id, w.name, w.waste_type, w.category, w.weight, w.status, w.center_id,
+                          c.citizen_id, c.name as citizen_name, rc.location as center_location
                    FROM Waste w 
-                   JOIN Citizen c ON w.citizen_id = c.citizen_id 
+                   JOIN Citizen c ON w.citizen_id = c.citizen_id
+                   LEFT JOIN Recycling_Center rc ON w.center_id = rc.center_id
                    WHERE w.waste_id = %s"""
         result = execute_query(query, (waste_id,), fetch_all=False)
         return jsonify(result) if result else jsonify({}), 404 if not result else 200
@@ -626,9 +628,9 @@ def api_waste_detail(waste_id):
     elif request.method == 'PUT':
         data = request.json
         try:
-            query = """UPDATE Waste SET waste_type=%s, name=%s, category=%s, weight=%s, citizen_id=%s, status=%s 
+            query = """UPDATE Waste SET waste_type=%s, name=%s, category=%s, weight=%s, citizen_id=%s, status=%s, center_id=%s
                       WHERE waste_id=%s"""
-            params = (data['waste_type'], data['name'], data['category'], data['weight'], data['citizen_id'], data.get('status', 'Collected'), waste_id)
+            params = (data['waste_type'], data['name'], data['category'], data['weight'], data['citizen_id'], data.get('status', 'Collected'), data.get('center_id', 1), waste_id)
             
             if execute_update(query, params):
                 return jsonify({'success': True, 'message': 'Waste updated successfully'})
@@ -890,7 +892,17 @@ def api_schedule_detail(schedule_id):
 @app.route('/api/centers', methods=['GET', 'POST'])
 def api_centers():
     if request.method == 'GET':
-        query = "SELECT center_id, location, capacity, operational_hours, recycled_waste_kg FROM Recycling_Center"
+        # Get centers with dynamically calculated recycled waste
+        query = """SELECT 
+                    c.center_id, 
+                    c.location, 
+                    c.capacity, 
+                    c.operational_hours,
+                    COALESCE(SUM(CASE WHEN w.status='Recycled' THEN w.weight ELSE 0 END), 0) as recycled_waste_kg
+                   FROM Recycling_Center c
+                   LEFT JOIN Waste w ON c.center_id = w.center_id
+                   GROUP BY c.center_id, c.location, c.capacity, c.operational_hours
+                   ORDER BY c.center_id"""
         results = execute_query(query)
         return jsonify(results)
     
@@ -899,7 +911,7 @@ def api_centers():
         try:
             query = """INSERT INTO Recycling_Center (location, capacity, operational_hours, recycled_waste_kg)
                       VALUES (%s, %s, %s, %s)"""
-            params = (data['location'], data['capacity'], data.get('operational_hours', ''), data.get('recycled_waste_kg', 0))
+            params = (data['location'], data['capacity'], data.get('operational_hours', ''), 0)
             
             if execute_update(query, params):
                 return jsonify({'success': True, 'message': 'Center added successfully'})
@@ -910,7 +922,17 @@ def api_centers():
 @app.route('/api/centers/<int:center_id>', methods=['GET', 'PUT', 'DELETE'])
 def api_center_detail(center_id):
     if request.method == 'GET':
-        query = "SELECT center_id, location, capacity, operational_hours, recycled_waste_kg FROM Recycling_Center WHERE center_id = %s"
+        # Get single center with dynamically calculated recycled waste
+        query = """SELECT 
+                    c.center_id, 
+                    c.location, 
+                    c.capacity, 
+                    c.operational_hours,
+                    COALESCE(SUM(CASE WHEN w.status='Recycled' THEN w.weight ELSE 0 END), 0) as recycled_waste_kg
+                   FROM Recycling_Center c
+                   LEFT JOIN Waste w ON c.center_id = w.center_id
+                   WHERE c.center_id = %s
+                   GROUP BY c.center_id, c.location, c.capacity, c.operational_hours"""
         results = execute_query(query, (center_id,))
         if results:
             return jsonify(results[0])
@@ -920,9 +942,9 @@ def api_center_detail(center_id):
         data = request.json
         try:
             query = """UPDATE Recycling_Center 
-                      SET location = %s, capacity = %s, operational_hours = %s, recycled_waste_kg = %s
+                      SET location = %s, capacity = %s, operational_hours = %s
                       WHERE center_id = %s"""
-            params = (data['location'], data['capacity'], data.get('operational_hours', ''), data.get('recycled_waste_kg', 0), center_id)
+            params = (data['location'], data['capacity'], data.get('operational_hours', ''), center_id)
             
             if execute_update(query, params):
                 return jsonify({'success': True, 'message': 'Center updated successfully'})

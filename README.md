@@ -1,34 +1,52 @@
 # Dhaka Waste Management System
 
-> **🌐 FRONTEND**: **http://localhost:8000** or **http://localhost:8001** ← Open this link after running `./run.sh`
+> **🌐 FRONTEND**: **http://localhost:8000** (Flask) or **http://localhost:5500** (Live Server)
 >
-> ℹ️ **NOTE**: If port 8000 is busy, the system automatically uses port 8001 or the next available port.
+> **QUICK START**: Run `./run.sh` then open http://localhost:8000
+>
+> **LIVE SERVER**: Run `python start_app.py`, then right-click `index.html` → "Open with Live Server"
 
 A comprehensive waste management system for Dhaka city built with Flask backend, MySQL database, and responsive HTML5 frontend.
 
 ## Quick Start
 
 ```bash
-# Make scripts executable
-chmod +x run.sh server-quick-start.sh
-
-# Start the server
+# Option 1: Using startup script (Recommended)
+chmod +x run.sh
 ./run.sh
 
-# OR quick restart (kills lingering processes first)
-./server-quick-start.sh
+# Option 2: Manual start
+python start_app.py
 ```
+
+Then open: **http://localhost:8000**
 
 ## Features
 
-- **Waste Collection Management**: Track waste collection routes and schedules
-- **Team Management**: Manage collection teams and assignments
-- **Citizen Registration**: Register and track citizens and their waste disposal
-- **Payment Tracking**: Process and track waste management payments in BDT (৳)
-- **Recycling Centers**: Manage 5 recycling centers across Dhaka (Gulshan, Banani, Dhanmondi, Mirpur, Motijheel)
-- **Area Coverage**: Serve 5 major areas in Dhaka
-- **Reporting**: Comprehensive reports on collections, payments, and recycling
-- **Real-time Auto-Save**: All updates automatically logged to database
+✅ **All CRUD Operations Working**:
+- Citizens management (Add, Edit, Delete)
+- Areas management
+- Teams/Crew management (10+ teams)
+- Staff management (20 staff members)
+- Team-Staff assignments (20 assignments)
+- Waste collection tracking
+- Bins management
+- Bills management
+- Payments (Add, Edit, Delete) - Recently Fixed
+- Collection Schedules (Add, Edit, Delete) - Recently Fixed
+- Recycling Centers management
+
+✅ **System Features**:
+- Dashboard with live statistics
+- Real-time database updates
+- 40+ RESTful API endpoints
+- MySQL with connection pooling
+- Responsive design (mobile, tablet, desktop)
+- Flask with Jinja2 templates
+- Live Server support with embedded CSS
+- Complete error handling
+- Auto-restart on crashes
+- Real-time SQL auto-logging
 
 ## Project Structure
 
@@ -140,23 +158,75 @@ The script automatically:
 ## Access the Application
 
 ### 🌐 Frontend (Web Interface) - START HERE
+
+**Two ways to access the application:**
+
+#### Option 1: Flask Development Server (Recommended)
 **Main Dashboard**: **http://localhost:8000**
 
-This is your main entry point. Open this link in your browser after running `./run.sh`:
+Simply run the startup script:
+```bash
+./run.sh
+```
 
-#### Available Pages:
+Open your browser and go to: **http://localhost:8000**
+
+#### Option 2: VS Code Live Server (For Frontend Development)
+
+**Requirements:**
+- VS Code with "Live Server" extension installed
+- Flask server running in background: `python start_app.py`
+
+**How to use:**
+
+1. **Start Flask in one terminal** (port 8000 - backend API):
+   ```bash
+   python start_app.py
+   ```
+
+2. **In VS Code**, right-click on `index.html` in the root directory
+
+3. **Select "Open with Live Server"** → Live Server opens on port 5500
+
+4. **Navigation:**
+   - The embedded CSS will load automatically
+   - All navigation links point to `http://localhost:8000/` (Flask routes)
+   - Click links to navigate between pages
+   - **Important**: Flask must be running for links to work
+
+**Live Server Setup:**
+- Port: 5500
+- Root: Project directory
+- CSS: Embedded in HTML (loads correctly)
+- API Calls: Point to `http://localhost:8000/api/*`
+
+**Why Both Servers?**
+- **Flask (8000)**: Serves the web interface with Jinja2 templates
+- **Live Server (5500)**: Serves static files with live reload for development
+- **Browser**: Connect to either one (they both show the same data)
+
+### Available Pages
+
+#### Using Flask (http://localhost:8000):
 | Page | URL | Purpose |
 |------|-----|---------|
-| Dashboard | `http://localhost:8000/` | System overview with statistics |
-| Citizens | `http://localhost:8000/citizens` | Manage citizen registrations |
-| Areas | `http://localhost:8000/areas` | Area coverage management |
-| Crew/Teams | `http://localhost:8000/crew` | Waste collection team management |
-| Waste | `http://localhost:8000/waste` | Waste collection tracking |
-| Bins | `http://localhost:8000/bins` | Smart bin management |
-| Bills | `http://localhost:8000/bills` | Billing and charges (BDT currency) |
-| Payments | `http://localhost:8000/payments` | Payment records and tracking |
-| Schedules | `http://localhost:8000/schedules` | Collection schedules |
-| Recycling Centers | `http://localhost:8000/centers` | Recycling facility management |
+| Dashboard | `/` | System overview with statistics |
+| Citizens | `/citizens` | Manage citizen registrations |
+| Areas | `/areas` | Area coverage management |
+| Crew/Teams | `/crew` | Waste collection team management |
+| Staff | `/staff` | Individual staff members management |
+| Assignments | `/assignments` | Team-to-staff assignments |
+| Waste | `/waste` | Waste collection tracking |
+| Bins | `/bins` | Smart bin management |
+| Bills | `/bills` | Billing and charges |
+| Payments | `/payments` | Payment records and tracking |
+| Schedules | `/schedules` | Collection schedules |
+| Recycling Centers | `/centers` | Recycling facility management |
+
+#### Using Live Server (http://localhost:5500):
+- Same pages accessible via navigation
+- CSS loads from embedded styles
+- All links redirect to Flask routes
 
 ### Backend (API)
 - **Base URL**: `http://localhost:8000/api`

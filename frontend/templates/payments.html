@@ -138,12 +138,13 @@ async function loadPayments() {
             <tr>
                 <td>${payment.payment_id}</td>
                 <td>${payment.citizen_name}</td>
-                <td>৳${parseFloat(payment.amount).toFixed(2)}</td>
+                <td>${parseFloat(payment.amount).toFixed(2)} BDT</td>
                 <td>${payment.method}</td>
                 <td>${payment.payment_date}</td>
                 <td>${payment.bill_number || '-'}</td>
                 <td class="actions">
                     <button class="btn btn-small" onclick="editPayment(${payment.payment_id})">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deletePayment(${payment.payment_id})">Delete</button>
                 </td>
             </tr>
         `).join('');
@@ -163,7 +164,65 @@ function showAddForm() {
 
 // Edit payment
 async function editPayment(id) {
-    alert('Payment records are view-only. To modify, please delete and create a new entry.');
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const payment = await response.json();
+        
+        if (payment && payment.payment_id) {
+            currentEditingId = id;
+            document.getElementById('formTitle').textContent = 'Edit Payment';
+            document.getElementById('paymentId').value = payment.payment_id;
+            document.getElementById('citizen_id').value = payment.citizen_id;
+            document.getElementById('bill_id').value = payment.bill_id || '';
+            document.getElementById('amount').value = payment.amount;
+            document.getElementById('payment_date').value = payment.payment_date;
+            document.getElementById('method').value = payment.method;
+            document.getElementById('formContainer').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading payment:', error);
+        alert('Error loading payment details');
+    }
+}
+
+// Delete payment
+async function deletePayment(id) {
+    if (confirm('Are you sure you want to delete this payment?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadPayments();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting payment:', error);
+            alert('Error deleting payment');
+        }
+    }
+}
+
+// Delete payment
+async function deletePayment(id) {
+    if (confirm('Are you sure you want to delete this payment?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadPayments();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting payment:', error);
+            alert('Error deleting payment');
+        }
+    }
 }
 
 // Submit form
@@ -179,11 +238,22 @@ async function submitForm(event) {
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+        let response;
+        if (currentEditingId) {
+            // Update existing payment
+            response = await fetch(`${API_URL}/${currentEditingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        } else {
+            // Create new payment
+            response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        }
 
         const result = await response.json();
         
@@ -192,7 +262,7 @@ async function submitForm(event) {
             hideForm();
             loadPayments();
         } else {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (result.error || result.message));
         }
     } catch (error) {
         console.error('Error submitting form:', error);

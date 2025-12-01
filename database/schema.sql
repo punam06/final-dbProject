@@ -827,3 +827,88 @@ UPDATE Area SET area_name='Gulshan Auto-Save Test', location='Updated Location',
 -- ========================================
 UPDATE Citizen SET name='Final Verification Test', address='Test Address Verified', contact='01700999999', area_id=1, email='verified@test.com' 
                       WHERE citizen_id=3;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Staff
+-- Timestamp: 2025-12-01 21:55:43
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Staff SET staff_name='Ahmed Alvee', position='Team Lead', contact='01900111111', email='ahmed.ali@waste.com', status='Active' 
+                      WHERE staff_id=1;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Payment
+-- Timestamp: 2025-12-01 21:58:43
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Payment (payment_date, amount, method, citizen_id, bill_id)
+                      VALUES ('2025-12-01', '400', 'Card', '5', '9');
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Area
+-- Timestamp: 2025-12-01 22:00:04
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Area SET area_name=' Area Auto-Save', location='Test Location', population='100000' WHERE area_id=6;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: DELETE Operation
+-- Table: Area
+-- Timestamp: 2025-12-01 22:00:11
+-- Status: Successfully executed and logged
+-- ========================================
+DELETE FROM Area WHERE area_id=6;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Has_Schedule
+-- Timestamp: 2025-12-01 22:06:31
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Has_Schedule (area_id, crew_id, schedule_date)
+                      VALUES (1, 1, '2025-12-05');
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Crew
+-- Timestamp: 2025-12-01 22:08:35
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Crew (team_name, contact, area_id, team_size) VALUES ('Team A', '0171234567', 1, 5);
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Has_Schedule
+-- Timestamp: 2025-12-01 22:10:04
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Has_Schedule (area_id, crew_id, schedule_date)
+                      VALUES (2, 3, '2025-12-15');
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Crew
+-- Timestamp: 2025-12-01 22:14:46
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Crew SET team_name='Motijheel Collection Team', contact='01800555556', area_id='5', team_size='7' WHERE crew_id=10;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: DELETE Operation
+-- Table: Crew
+-- Timestamp: 2025-12-01 22:15:00
+-- Status: Successfully executed and logged
+-- ========================================
+DELETE FROM Crew WHERE crew_id=10;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Has_Schedule
+-- Timestamp: 2025-12-01 22:15:56
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Has_Schedule SET schedule_date='2025-12-20', area_id=2, crew_id=3 
+                      WHERE schedule_id=1;

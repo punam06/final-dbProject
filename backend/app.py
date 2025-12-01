@@ -825,16 +825,65 @@ def api_payments_detail(payment_id):
 
 # ===== SCHEDULES API =====
 
-@app.route('/api/schedules', methods=['GET'])
+@app.route('/api/schedules', methods=['GET', 'POST'])
 def api_schedules():
-    query = """SELECT hs.schedule_id, hs.schedule_date,
-                      a.area_id, a.area_name,
-                      cr.crew_id, cr.crew_name
-               FROM Has_Schedule hs 
-               JOIN Area a ON hs.area_id = a.area_id 
-               JOIN Crew cr ON hs.crew_id = cr.crew_id"""
-    results = execute_query(query)
-    return jsonify(results)
+    if request.method == 'GET':
+        query = """SELECT hs.schedule_id, hs.schedule_date,
+                          a.area_id, a.area_name,
+                          cr.crew_id, cr.team_name as crew_name
+                   FROM Has_Schedule hs 
+                   JOIN Area a ON hs.area_id = a.area_id 
+                   JOIN Crew cr ON hs.crew_id = cr.crew_id"""
+        results = execute_query(query)
+        return jsonify(results)
+    
+    elif request.method == 'POST':
+        data = request.json
+        try:
+            query = """INSERT INTO Has_Schedule (area_id, crew_id, schedule_date)
+                      VALUES (%s, %s, %s)"""
+            params = (data['area_id'], data['crew_id'], data['schedule_date'])
+            
+            if execute_update(query, params):
+                return jsonify({'success': True, 'message': 'Schedule added successfully'})
+            return jsonify({'success': False, 'message': 'Failed to add schedule'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+
+@app.route('/api/schedules/<int:schedule_id>', methods=['GET', 'PUT', 'DELETE'])
+def api_schedule_detail(schedule_id):
+    if request.method == 'GET':
+        query = """SELECT hs.schedule_id, hs.schedule_date,
+                          a.area_id, a.area_name,
+                          cr.crew_id, cr.team_name as crew_name
+                   FROM Has_Schedule hs 
+                   JOIN Area a ON hs.area_id = a.area_id 
+                   JOIN Crew cr ON hs.crew_id = cr.crew_id
+                   WHERE hs.schedule_id = %s"""
+        result = execute_query(query, (schedule_id,), fetch_all=False)
+        return jsonify(result) if result else jsonify({}), 404 if not result else 200
+    
+    elif request.method == 'PUT':
+        data = request.json
+        try:
+            query = """UPDATE Has_Schedule SET schedule_date=%s, area_id=%s, crew_id=%s 
+                      WHERE schedule_id=%s"""
+            params = (data['schedule_date'], data['area_id'], data['crew_id'], schedule_id)
+            
+            if execute_update(query, params):
+                return jsonify({'success': True, 'message': 'Schedule updated successfully'})
+            return jsonify({'success': False, 'message': 'Failed to update schedule'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+    
+    elif request.method == 'DELETE':
+        try:
+            query = "DELETE FROM Has_Schedule WHERE schedule_id=%s"
+            if execute_update(query, (schedule_id,)):
+                return jsonify({'success': True, 'message': 'Schedule deleted successfully'})
+            return jsonify({'success': False, 'message': 'Failed to delete schedule'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
 
 # ===== RECYCLING CENTERS API =====
 
@@ -872,7 +921,7 @@ def citizens_list():
 
 @app.route('/api/crews-list')
 def crews_list():
-    results = execute_query("SELECT crew_id, crew_name FROM Crew")
+    results = execute_query("SELECT crew_id, team_name as crew_name FROM Crew")
     return jsonify(results)
 
 # ===== STAFF API (Individual Team Members) =====

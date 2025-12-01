@@ -26,6 +26,11 @@
                     <select id="area_id" required></select>
                 </div>
 
+                <div class="form-group">
+                    <label for="crew_id">Assigned Team *</label>
+                    <select id="crew_id" required></select>
+                </div>
+
                 <div class="form-buttons">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
@@ -42,6 +47,7 @@
                     <th>ID</th>
                     <th>Schedule Date</th>
                     <th>Area</th>
+                    <th>Assigned Team</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -59,6 +65,7 @@
 <script>
 const API_URL = '/api/schedules';
 const AREAS_API = '/api/areas-list';
+const CREWS_API = '/api/crews-list';
 let currentEditingId = null;
 
 // Load areas dropdown
@@ -79,6 +86,24 @@ async function loadAreas() {
     }
 }
 
+// Load crews dropdown
+async function loadCrews() {
+    try {
+        const response = await fetch(CREWS_API);
+        const crews = await response.json();
+        const select = document.getElementById('crew_id');
+        select.innerHTML = '<option value="">Select Team</option>';
+        crews.forEach(crew => {
+            const option = document.createElement('option');
+            option.value = crew.crew_id;
+            option.textContent = crew.crew_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading crews:', error);
+    }
+}
+
 // Load schedules data
 async function loadSchedules() {
     try {
@@ -87,7 +112,7 @@ async function loadSchedules() {
         const table = document.getElementById('schedulesTable');
         
         if (schedules.length === 0) {
-            table.innerHTML = '<tr><td colspan="4" class="no-data">No schedules found</td></tr>';
+            table.innerHTML = '<tr><td colspan="5" class="no-data">No schedules found</td></tr>';
             return;
         }
 
@@ -96,14 +121,16 @@ async function loadSchedules() {
                 <td>${schedule.schedule_id}</td>
                 <td>${schedule.schedule_date}</td>
                 <td>${schedule.area_name}</td>
+                <td>${schedule.crew_name}</td>
                 <td class="actions">
+                    <button class="btn btn-small" onclick="editSchedule(${schedule.schedule_id})">Edit</button>
                     <button class="btn btn-small btn-danger" onclick="deleteSchedule(${schedule.schedule_id})">Delete</button>
                 </td>
             </tr>
         `).join('');
     } catch (error) {
         console.error('Error loading schedules:', error);
-        document.getElementById('schedulesTable').innerHTML = '<tr><td colspan="4" class="error">Error loading data</td></tr>';
+        document.getElementById('schedulesTable').innerHTML = '<tr><td colspan="5" class="error">Error loading data</td></tr>';
     }
 }
 
@@ -115,21 +142,54 @@ function showAddForm() {
     document.getElementById('formContainer').style.display = 'block';
 }
 
+// Edit schedule
+async function editSchedule(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const schedule = await response.json();
+        
+        if (schedule && schedule.schedule_id) {
+            currentEditingId = id;
+            document.getElementById('formTitle').textContent = 'Edit Schedule';
+            document.getElementById('scheduleId').value = schedule.schedule_id;
+            document.getElementById('schedule_date').value = schedule.schedule_date;
+            document.getElementById('area_id').value = schedule.area_id;
+            document.getElementById('crew_id').value = schedule.crew_id;
+            document.getElementById('formContainer').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading schedule:', error);
+        alert('Error loading schedule details');
+    }
+}
+
 // Submit form
 async function submitForm(event) {
     event.preventDefault();
     
     const formData = {
         schedule_date: document.getElementById('schedule_date').value,
-        area_id: document.getElementById('area_id').value
+        area_id: parseInt(document.getElementById('area_id').value),
+        crew_id: parseInt(document.getElementById('crew_id').value)
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
+        let response;
+        if (currentEditingId) {
+            // Update existing schedule
+            response = await fetch(`${API_URL}/${currentEditingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        } else {
+            // Create new schedule
+            response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+        }
 
         const result = await response.json();
         
@@ -138,7 +198,7 @@ async function submitForm(event) {
             hideForm();
             loadSchedules();
         } else {
-            alert('Error: ' + result.error);
+            alert('Error: ' + (result.error || result.message || 'Failed to save schedule'));
         }
     } catch (error) {
         console.error('Error submitting form:', error);
@@ -176,6 +236,7 @@ function hideForm() {
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadAreas();
+    loadCrews();
     loadSchedules();
 });
 </script>

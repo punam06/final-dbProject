@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Waste Management System</title>
+    <style>
+        /* ==================== GENERAL STYLES ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        :root {
+            --primary-color: #2ecc71;
+            --secondary-color: #3498db;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --border-color: #bdc3c7;
+            --success-color: #27ae60;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            font-size: 16px;
+        }
+        .container {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        /* ==================== HEADER & NAVIGATION ==================== */
+        .header {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 25px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        .header-content {
+            width: 100%;
+            margin: 0;
+            padding: 0 40px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .navbar {
+            background: rgba(0,0,0,0.1);
+            padding: 15px 40px;
+            width: 100%;
+            margin: 0;
+        }
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: opacity 0.3s;
+        }
+        .nav-link:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+        /* ==================== MAIN CONTENT ==================== */
+        .main-content {
+            flex: 1;
+            width: 100%;
+            margin: 0;
+            padding: 40px;
+        }
+        .page-section {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 2.3rem;
+            color: var(--dark-color);
+            margin: 0 0 30px 0;
+        }
+        /* ==================== STATS ==================== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .stat-card:nth-child(4) {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+        .stat-icon {
+            font-size: 3rem;
+        }
+        .stat-content h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        .stat-number {
+            font-size: 2.3rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        /* ==================== CHARTS ==================== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-container h3 {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        .status-display {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background-color: var(--light-color);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .status-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        /* ==================== STAT BOX ==================== */
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        .stat-box h3 {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+        }
+        .stat-list {
+            list-style: none;
+        }
+        .stat-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--light-color);
+            font-size: 1rem;
+        }
+        .stat-list li:last-child {
+            border-bottom: none;
+        }
+        .stat-list strong {
+            color: var(--dark-color);
+        }
+        /* ==================== FOOTER ==================== */
+        .footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 25px 40px;
+            margin-top: 40px;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .footer p {
+            margin: 0;
+        }
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 20px;
+            }
+            .navbar {
+                padding: 12px 20px;
+            }
+            .nav-list {
+                gap: 20px;
+                font-size: 1rem;
+            }
+            .main-content {
+                padding: 20px;
+            }
+            .page-section {
+                padding: 25px;
+            }
+            .section-title {
+                font-size: 1.8rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">WasteHub</h1>
+                <p class="subtitle">Waste Management System</p>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-list">
+                    <li><a href="http://localhost:8000/" class="nav-link">Dashboard</a></li>
+                    <li><a href="http://localhost:8000/areas" class="nav-link">Areas</a></li>
+                    <li><a href="http://localhost:8000/citizens" class="nav-link">Citizens</a></li>
+                    <li><a href="http://localhost:8000/crew" class="nav-link">Team</a></li>
+                    <li><a href="http://localhost:8000/staff" class="nav-link">Staff</a></li>
+                    <li><a href="http://localhost:8000/assignments" class="nav-link">Assignments</a></li>
+                    <li><a href="http://localhost:8000/bills" class="nav-link">Bills</a></li>
+                    <li><a href="http://localhost:8000/waste" class="nav-link">Waste</a></li>
+                    <li><a href="http://localhost:8000/bins" class="nav-link">Bins</a></li>
+                    <li><a href="http://localhost:8000/schedules" class="nav-link">Schedules</a></li>
+                    <li><a href="http://localhost:8000/centers" class="nav-link">Centers</a></li>
+                    <li><a href="http://localhost:8000/payments" class="nav-link">Payments</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="page-section">
+                <h2 class="section-title">Dashboard</h2>
+                
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <h3>Total Citizens</h3>
+                            <p class="stat-number" id="citizens-count">Loading...</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">♻️</div>
+                        <div class="stat-content">
+                            <h3>Waste Collected (kg)</h3>
+                            <p class="stat-number" id="waste-collected">Loading...</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-content">
+                            <h3>Waste Recycled (kg)</h3>
+                            <p class="stat-number" id="waste-recycled">Loading...</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <h3>Total Bills Paid (BDT)</h3>
+                            <p class="stat-number" id="bills-paid">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Waste Status Distribution</h3>
+                        <div class="status-display">
+                            <div class="status-item">
+                                <span>Collected:</span>
+                                <span class="status-value" id="waste-collected-count">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Recycled:</span>
+                                <span class="status-value" id="waste-recycled-count">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Disposed:</span>
+                                <span class="status-value" id="waste-disposed-count">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Pending:</span>
+                                <span class="status-value" id="waste-pending-count">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3>Bill Status Distribution</h3>
+                        <div class="status-display">
+                            <div class="status-item">
+                                <span>Paid:</span>
+                                <span class="status-value" id="bills-paid-count">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Pending:</span>
+                                <span class="status-value" id="bills-pending-count">-</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Overdue:</span>
+                                <span class="status-value" id="bills-overdue-count">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Stats -->
+                <div class="stat-box">
+                    <h3>System Overview</h3>
+                    <ul class="stat-list">
+                        <li><strong>Total Areas:</strong> <span id="areas-count">-</span></li>
+                        <li><strong>Total Teams:</strong> <span id="teams-count">-</span></li>
+                        <li><strong>Total Bins:</strong> <span id="bins-count">-</span></li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Copyright 2025 Waste Management System. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Load dashboard stats from Flask API
+        fetch('http://localhost:8000/api/dashboard-stats', { method: 'GET', mode: 'cors' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('citizens-count').textContent = data.data.total_citizens;
+                    document.getElementById('waste-collected').textContent = data.data.total_waste_kg.toFixed(2);
+                    document.getElementById('waste-recycled').textContent = data.data.total_recycled_kg.toFixed(2);
+                    document.getElementById('bills-paid').textContent = data.data.total_bills_paid.toFixed(0);
+                    document.getElementById('waste-collected-count').textContent = data.data.waste_status.collected;
+                    document.getElementById('waste-recycled-count').textContent = data.data.waste_status.recycled;
+                    document.getElementById('waste-disposed-count').textContent = data.data.waste_status.disposed;
+                    document.getElementById('waste-pending-count').textContent = data.data.waste_status.pending;
+                    document.getElementById('bills-paid-count').textContent = data.data.bill_status.paid;
+                    document.getElementById('bills-pending-count').textContent = data.data.bill_status.pending;
+                    document.getElementById('bills-overdue-count').textContent = data.data.bill_status.overdue;
+                    document.getElementById('areas-count').textContent = data.data.areas;
+                    document.getElementById('teams-count').textContent = data.data.crews;
+                    document.getElementById('bins-count').textContent = data.data.bins;
+                }
+            })
+            .catch(error => {
+                console.log('API not available. Make sure Flask is running on http://localhost:8000');
+            });
+    </script>
+</body>
+</html>

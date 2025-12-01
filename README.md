@@ -382,6 +382,86 @@ python backend/app.py
 - Real-time visibility into server health
 - All queries logged with timestamps
 
+---
+
+## 🚀 Live Server Deployment
+
+### For Live Servers / Different Environments
+
+**IMPORTANT**: The application uses absolute path resolution to work correctly on any server.
+
+**Two ways to run the server:**
+
+**Option 1: Using start_app.py (Recommended for Deployment)**
+```bash
+# From project root
+cd /path/to/waste-management
+python start_app.py
+```
+
+**Option 2: Using run_server.sh (Best for Development)**
+```bash
+# From project root
+cd /path/to/waste-management
+chmod +x run_server.sh
+./run_server.sh start
+```
+
+### Why CSS Wasn't Loading on Live Server
+
+**Previous Problem:**
+- Relative paths like `../static` didn't work correctly
+- CSS file returned 404 when running from different directories
+- Only HTML loaded, CSS didn't load
+
+**Solution Implemented:**
+- All paths now use absolute resolution
+- `start_app.py` runs from project root
+- Flask correctly finds `/static` directory
+- CSS loads with correct MIME type: `text/css`
+
+### Path Resolution (Automatic)
+The system automatically resolves:
+- **Static files**: `PROJECT_ROOT/static`
+- **Templates**: `PROJECT_ROOT/frontend/templates`
+- **Database schema**: `PROJECT_ROOT/database/schema.sql`
+
+### Deployment Checklist
+
+✅ Clone repository to `/path/to/project`
+✅ Create Python virtual environment: `python -m venv venv`
+✅ Activate venv: `source venv/bin/activate`
+✅ Install requirements: `pip install -r requirements.txt`
+✅ Set up MySQL database: `mysql -u root < database/schema.sql`
+✅ Run server: `python start_app.py` or `./run_server.sh start`
+✅ Access: `http://localhost:8000`
+✅ CSS and all static files load correctly ✅
+
+### For Docker/Container Deployment
+
+Add to Dockerfile:
+```dockerfile
+WORKDIR /app
+COPY . .
+RUN pip install -r requirements.txt
+CMD ["python", "start_app.py"]
+```
+
+### For Cloud Deployment (Heroku, AWS, etc.)
+
+Create `Procfile`:
+```
+web: python start_app.py
+```
+
+The absolute path resolution works on:
+- ✅ Local development
+- ✅ Linux servers
+- ✅ macOS
+- ✅ Docker containers
+- ✅ Cloud platforms (Heroku, AWS, Google Cloud)
+- ✅ Virtual environments
+
 ## Troubleshooting
 
 ### 🌐 Quick Access Links

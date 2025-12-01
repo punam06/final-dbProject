@@ -27,8 +27,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="amount">Amount ($) *</label>
-                    <input type="number" id="amount" step="0.01" required placeholder="Enter amount">
+                    <label for="amount">Amount (BDT) *</label>
+                    <input type="number" id="amount" step="0.01" required placeholder="Enter amount in Taka">
                 </div>
 
                 <div class="form-group">
@@ -62,7 +62,7 @@
                     <th>ID</th>
                     <th>Bill Number</th>
                     <th>Citizen</th>
-                    <th>Amount ($)</th>
+                    <th>Amount (BDT)</th>
                     <th>Status</th>
                     <th>Due Date</th>
                     <th>Actions</th>
@@ -119,7 +119,7 @@ async function loadBills() {
                 <td>${bill.bill_id}</td>
                 <td>${bill.bill_number}</td>
                 <td>${bill.citizen_name}</td>
-                <td>$${parseFloat(bill.amount).toFixed(2)}</td>
+                <td>৳${parseFloat(bill.amount).toFixed(2)}</td>
                 <td><span class="status-badge status-${bill.status.toLowerCase()}">${bill.status}</span></td>
                 <td>${bill.due_date}</td>
                 <td class="actions">

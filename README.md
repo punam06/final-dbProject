@@ -118,19 +118,24 @@ The script automatically:
 
 ## Access the Application
 
-### Frontend (HTML Interface)
-- **URL**: `http://localhost:8000`
-- **Pages Available**:
-  - Dashboard: `http://localhost:8000/` (Home)
-  - Citizens: `http://localhost:8000/citizens`
-  - Areas: `http://localhost:8000/areas`
-  - Crew/Teams: `http://localhost:8000/crew`
-  - Waste: `http://localhost:8000/waste`
-  - Bins: `http://localhost:8000/bins`
-  - Bills: `http://localhost:8000/bills`
-  - Payments: `http://localhost:8000/payments`
-  - Schedules: `http://localhost:8000/schedules`
-  - Recycling Centers: `http://localhost:8000/centers`
+### 🌐 Frontend (Web Interface) - START HERE
+**Main Dashboard**: **http://localhost:8000**
+
+This is your main entry point. Open this link in your browser after running `./run.sh`:
+
+#### Available Pages:
+| Page | URL | Purpose |
+|------|-----|---------|
+| Dashboard | `http://localhost:8000/` | System overview with statistics |
+| Citizens | `http://localhost:8000/citizens` | Manage citizen registrations |
+| Areas | `http://localhost:8000/areas` | Area coverage management |
+| Crew/Teams | `http://localhost:8000/crew` | Waste collection team management |
+| Waste | `http://localhost:8000/waste` | Waste collection tracking |
+| Bins | `http://localhost:8000/bins` | Smart bin management |
+| Bills | `http://localhost:8000/bills` | Billing and charges (BDT currency) |
+| Payments | `http://localhost:8000/payments` | Payment records and tracking |
+| Schedules | `http://localhost:8000/schedules` | Collection schedules |
+| Recycling Centers | `http://localhost:8000/centers` | Recycling facility management |
 
 ### Backend (API)
 - **Base URL**: `http://localhost:8000/api`
@@ -161,9 +166,48 @@ The script automatically:
 ✅ Automatic startup script for easy deployment  
 ✅ Port conflict resolution (uses port 8000)  
 ✅ Template and static file serving  
-✅ MySQL connection pooling
+✅ MySQL connection pooling  
+✅ **Real-time SQL Auto-Save**: All frontend updates automatically logged to `database/schema.sql`  
+✅ **Aggregate Functions**: GROUP BY queries with COUNT, SUM, AVG, MIN, MAX  
+✅ **Inline Commands**: Every frontend update includes timestamp and verification query  
+✅ **Full-Width Responsive Design**: Mobile, tablet, and desktop optimized  
+✅ **English-Only Dhaka Context**: All data in English for international use
+
+## Real-Time Database Updates
+
+When you make changes through the web interface (add, edit, delete), the system automatically:
+
+1. **Saves** the SQL command to `database/schema.sql`
+2. **Logs** the timestamp and operation type
+3. **Includes** a verification query for testing
+4. **Updates** the live database immediately
+
+### Example Auto-Saved Update in schema.sql:
+
+```sql
+-- ========================================
+-- REAL-TIME UPDATE - Bill TABLE
+-- Timestamp: 2025-01-01 10:30:15
+-- Status: AUTO-SAVED from Frontend
+-- ========================================
+UPDATE Bill SET status = 'Paid', created_at = NOW() WHERE bill_id = 2;
+
+-- Verification Query:
+-- SELECT * FROM Bill WHERE bill_id = 2;
+```
+
+This feature provides:
+- **Complete audit trail** of all changes
+- **Replay capability** for testing or replication
+- **Debugging support** with timestamps
+- **Demo ready** SQL commands
 
 ## Troubleshooting
+
+### 🌐 Quick Access Links
+Once the server is running, use these links:
+- **Main Dashboard**: http://localhost:8000
+- **API Status**: http://localhost:8000/api/dashboard-stats
 
 ### Port Already in Use
 The application uses port 8000. If you get "Address already in use" error:

@@ -41,44 +41,57 @@ except Exception as e:
     print(f"⚠️ Connection pool error: {e}")
     cnx_pool = None
 
-# Schema file path for logging queries
-SCHEMA_FILE = os.path.join(os.path.dirname(__file__), 'database', 'schema.sql')
+# Schema file path for logging queries (from project root, not backend/)
+SCHEMA_FILE = os.path.join(os.path.dirname(__file__), '..', 'database', 'schema.sql')
+SCHEMA_FILE = os.path.abspath(SCHEMA_FILE)  # Resolve to absolute path
 
 # ===== DATABASE HELPER FUNCTIONS =====
 
-def log_query_to_schema_async(query_text, operation_type, table_name):
-    """Log UPDATE/DELETE/INSERT queries to schema.sql inline (async, non-blocking)"""
+def log_query_to_schema_async(query_text, params, operation_type, table_name):
+    """Log UPDATE/DELETE/INSERT queries to schema.sql with actual values (async, non-blocking)"""
     def async_log():
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # Format query for inline execution
+            # Convert parameterized query to actual SQL with values
             formatted_query = query_text.strip()
+            
+            if params:
+                # Replace %s placeholders with actual values
+                param_list = list(params) if params else []
+                for param in param_list:
+                    if isinstance(param, str):
+                        # Escape single quotes in strings
+                        escaped = param.replace("'", "\\'")
+                        formatted_query = formatted_query.replace('%s', f"'{escaped}'", 1)
+                    elif isinstance(param, (int, float)):
+                        formatted_query = formatted_query.replace('%s', str(param), 1)
+                    elif param is None:
+                        formatted_query = formatted_query.replace('%s', 'NULL', 1)
+                    else:
+                        formatted_query = formatted_query.replace('%s', str(param), 1)
+            
             if not formatted_query.endswith(';'):
                 formatted_query += ';'
             
             # Create detailed log entry with timestamp and operation info
             log_entry = f"\n-- ========================================\n"
-            log_entry += f"-- REAL-TIME {operation_type} - {table_name} TABLE\n"
+            log_entry += f"-- FRONTEND AUTO-SAVE: {operation_type} Operation\n"
+            log_entry += f"-- Table: {table_name}\n"
             log_entry += f"-- Timestamp: {timestamp}\n"
-            log_entry += f"-- Status: AUTO-SAVED from Frontend\n"
+            log_entry += f"-- Status: Successfully executed and logged\n"
             log_entry += f"-- ========================================\n"
             log_entry += f"{formatted_query}\n"
-            log_entry += f"\n-- Verification Query:\n"
             
-            if operation_type == "UPDATE":
-                log_entry += f"-- SELECT * FROM {table_name};\n"
-            elif operation_type == "INSERT":
-                log_entry += f"-- SELECT COUNT(*) as total_records FROM {table_name};\n"
-            elif operation_type == "DELETE":
-                log_entry += f"-- SELECT COUNT(*) as remaining_records FROM {table_name};\n"
-            
+            # Ensure schema file exists
             if os.path.exists(SCHEMA_FILE):
                 with open(SCHEMA_FILE, 'a') as f:
                     f.write(log_entry)
-                print(f"✅ Query logged to schema.sql: {operation_type} on {table_name}")
+                print(f"✅ Query auto-saved to schema.sql: {operation_type} on {table_name}")
+            else:
+                print(f"⚠️ Schema file not found at: {SCHEMA_FILE}")
         except Exception as e:
-            print(f"⚠️ Query logging error: {e}")
+            print(f"⚠️ Query auto-save error: {e}")
     
     # Log in background thread (don't block request)
     thread = threading.Thread(target=async_log, daemon=True)
@@ -150,8 +163,8 @@ def execute_update(query, params):
             op_type = "INSERT"
             table_name = query.split()[2] if len(query.split()) > 2 else "Unknown"
         
-        # Log asynchronously (non-blocking)
-        log_query_to_schema_async(query, op_type, table_name)
+        # Log asynchronously (non-blocking) with actual parameter values
+        log_query_to_schema_async(query, params, op_type, table_name)
         
         cursor.close()
         return True

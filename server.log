@@ -1,14 +1,20 @@
 
-✅ Starting Waste Management System on port 8001
-📍 Access at: http://localhost:8001
-🌐 API at: http://localhost:8001/api
-
-⚠️  Port 8000 was in use, using port 8001 instead
+✅ Starting Waste Management System on port 8000
+📍 Access at: http://localhost:8000
+🌐 API at: http://localhost:8000/api
 
  * Serving Flask app 'app'
  * Debug mode: off
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:8001
+ * Running on http://127.0.0.1:8000
 [33mPress CTRL+C to quit[0m
-127.0.0.1 - - [01/Dec/2025 14:40:35] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [01/Dec/2025 14:41:25] "GET /api/areas HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:54:32] "GET /api/areas HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:54:39] "POST /api/citizens HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:54:55] "[31m[1mPUT /api/citizens/3 HTTP/1.1[0m" 400 -
+127.0.0.1 - - [01/Dec/2025 14:55:00] "GET /api/citizens HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:55:05] "PUT /api/citizens/4 HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:55:16] "POST /api/citizens HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:55:21] "GET /api/citizens HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:55:24] "DELETE /api/citizens/16 HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:55:37] "PUT /api/areas/1 HTTP/1.1" 200 -
+127.0.0.1 - - [01/Dec/2025 14:55:51] "GET / HTTP/1.1" 200 -

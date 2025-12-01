@@ -693,3 +693,46 @@ UPDATE Citizen SET contact = '01900000099', registration_date = NOW() WHERE citi
 -- ========================================
 
 
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:54:39
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Citizen (name, address, contact, area_id, email)
+                      VALUES ('Ali Ahmed Test 2', 'Test Address 2, Dhaka', '01977777777', 2, 'ali.test@email.com');
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:55:05
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Citizen SET name='Nazma Akter Updated', address='Updated Home Address, Dhaka', contact='01999888888', area_id=1, email='nazma.updated@email.com' 
+                      WHERE citizen_id=4;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: INSERT Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:55:16
+-- Status: Successfully executed and logged
+-- ========================================
+INSERT INTO Citizen (name, address, contact, area_id, email)
+                      VALUES ('Temp Citizen Delete Test', 'Temp Address, Dhaka', '01999666666', 3, 'temp@email.com');
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: DELETE Operation
+-- Table: Citizen
+-- Timestamp: 2025-12-01 14:55:24
+-- Status: Successfully executed and logged
+-- ========================================
+DELETE FROM Citizen WHERE citizen_id=16;
+
+-- ========================================
+-- FRONTEND AUTO-SAVE: UPDATE Operation
+-- Table: Area
+-- Timestamp: 2025-12-01 14:55:37
+-- Status: Successfully executed and logged
+-- ========================================
+UPDATE Area SET area_name='Gulshan Updated', location='Updated Gulshan Location', population=900000 WHERE area_id=1;

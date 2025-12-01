@@ -62,8 +62,32 @@ The system uses 11 tables with the following coverage:
 - Python 3.7+
 - MySQL 5.7+
 - pip package manager
+- macOS/Linux/Windows with bash shell
 
-### Installation
+### Quick Start (Recommended)
+
+The easiest way to run the application is using the startup script:
+
+```bash
+# Clone the repository
+git clone https://github.com/punam06/final-dbProject.git
+cd final-dbProject
+
+# Make the startup script executable
+chmod +x run.sh
+
+# Run the application
+./run.sh
+```
+
+The script automatically:
+- ✅ Checks MySQL is running
+- ✅ Initializes database if needed
+- ✅ Installs dependencies
+- ✅ Clears port conflicts
+- ✅ Starts Flask server on port 8000
+
+### Manual Setup
 
 1. **Clone the repository**
    ```bash
@@ -81,10 +105,10 @@ The system uses 11 tables with the following coverage:
    mysql -u root -p < database/schema.sql
    ```
 
-4. **Configure environment**
+4. **Configure environment** (optional)
    ```bash
-   cp environment/.env.example environment/.env
-   # Edit environment/.env with your database credentials
+   cp environment/.env.development environment/.env
+   # Edit environment/.env with your database credentials if needed
    ```
 
 5. **Run the application**
@@ -92,7 +116,25 @@ The system uses 11 tables with the following coverage:
    python backend/app.py
    ```
 
-The application will be available at `http://localhost:5000`
+## Access the Application
+
+### Frontend (HTML Interface)
+- **URL**: `http://localhost:8000`
+- **Pages Available**:
+  - Dashboard: `http://localhost:8000/` (Home)
+  - Citizens: `http://localhost:8000/citizens`
+  - Areas: `http://localhost:8000/areas`
+  - Crew/Teams: `http://localhost:8000/crew`
+  - Waste: `http://localhost:8000/waste`
+  - Bins: `http://localhost:8000/bins`
+  - Bills: `http://localhost:8000/bills`
+  - Payments: `http://localhost:8000/payments`
+  - Schedules: `http://localhost:8000/schedules`
+  - Recycling Centers: `http://localhost:8000/centers`
+
+### Backend (API)
+- **Base URL**: `http://localhost:8000/api`
+- **Dashboard Stats**: `http://localhost:8000/api/dashboard-stats`
 
 ## API Endpoints
 
@@ -116,6 +158,53 @@ The application will be available at `http://localhost:5000`
 ✅ Payment tracking with Taka (৳) currency  
 ✅ Team and waste collection management  
 ✅ Recycling center operations  
+✅ Automatic startup script for easy deployment  
+✅ Port conflict resolution (uses port 8000)  
+✅ Template and static file serving  
+✅ MySQL connection pooling
+
+## Troubleshooting
+
+### Port Already in Use
+The application uses port 8000. If you get "Address already in use" error:
+```bash
+lsof -ti:8000 | xargs kill -9
+```
+
+### MySQL Not Running
+Make sure MySQL is installed and running:
+```bash
+# macOS
+brew services start mysql
+
+# Linux
+sudo systemctl start mysql
+
+# Windows
+net start MySQL80
+```
+
+### Dependencies Issues
+Reinstall dependencies:
+```bash
+pip install --break-system-packages -r requirements.txt
+```
+
+### Database Not Initialized
+Initialize the database manually:
+```bash
+mysql -u root -p < database/schema.sql
+```
+
+## Project Files
+
+- `run.sh` - Automated startup script (recommended)
+- `backend/app.py` - Flask application with all API endpoints
+- `frontend/templates/` - HTML templates for UI
+- `database/schema.sql` - MySQL database schema with sample data
+- `static/` - CSS and JavaScript files
+- `requirements.txt` - Python dependencies
+- `environment/` - Configuration files
 
 ## Contact & Support
 
@@ -124,5 +213,7 @@ For issues or questions about this project, please create an issue in the GitHub
 ---
 
 **Project Status**: Production Ready  
-**Last Updated**: December 2024  
-**Database**: Dhaka City Waste Management
+**Last Updated**: December 2025  
+**Database**: Dhaka City Waste Management  
+**Frontend Port**: 8000  
+**Repository**: https://github.com/punam06/final-dbProject.git

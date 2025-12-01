@@ -11,7 +11,15 @@ from datetime import datetime
 import os
 import threading
 
-app = Flask(__name__)
+# Setup template directory - use frontend/templates or root templates
+template_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'templates')
+if not os.path.exists(template_dir):
+    template_dir = os.path.join(os.path.dirname(__file__), '..', 'templates')
+
+# Setup static files directory
+static_dir = os.path.join(os.path.dirname(__file__), '..', 'static')
+
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir, static_url_path='/static')
 
 # Database Configuration with Connection Pooling
 DB_CONFIG = {
@@ -770,4 +778,4 @@ def internal_error(e):
 # ===== MAIN =====
 
 if __name__ == '__main__':
-    app.run(debug=False, host='127.0.0.1', port=5000, threaded=True)
+    app.run(debug=False, host='127.0.0.1', port=8000, threaded=True)

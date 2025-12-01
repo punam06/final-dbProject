@@ -22,11 +22,13 @@ body {
     line-height: 1.6;
     color: #333;
     background-color: #f5f5f5;
+    font-size: 16px;
 }
 
 .container {
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -37,41 +39,41 @@ body {
 .header {
     background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
     color: white;
-    padding: 20px 0;
+    padding: 25px 0;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 100%;
 }
 
 .header-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
+    width: 100%;
+    margin: 0;
+    padding: 0 40px;
     margin-bottom: 20px;
 }
 
 .logo {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
 .subtitle {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     opacity: 0.9;
 }
 
 .navbar {
     background: rgba(0,0,0,0.1);
-    padding: 0 20px;
-    max-width: 1400px;
-    margin: 0 auto;
+    padding: 15px 40px;
     width: 100%;
+    margin: 0;
 }
 
 .nav-list {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 30px;
+    gap: 40px;
     justify-content: center;
 }
 
@@ -79,6 +81,7 @@ body {
     color: white;
     text-decoration: none;
     font-weight: 500;
+    font-size: 1.1rem;
     transition: opacity 0.3s;
 }
 
@@ -91,16 +94,15 @@ body {
 
 .main-content {
     flex: 1;
-    max-width: 1400px;
-    margin: 0 auto;
     width: 100%;
-    padding: 30px 20px;
+    margin: 0;
+    padding: 40px;
 }
 
 .page-section {
     background: white;
     border-radius: 8px;
-    padding: 30px;
+    padding: 40px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
@@ -114,7 +116,7 @@ body {
 }
 
 .section-title {
-    font-size: 2rem;
+    font-size: 2.3rem;
     color: var(--dark-color);
     margin: 0;
 }
@@ -122,11 +124,12 @@ body {
 /* ==================== BUTTONS ==================== */
 
 .btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
+    font-size: 1rem;
     transition: all 0.3s;
     text-decoration: none;
     display: inline-block;
@@ -194,16 +197,17 @@ body {
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     color: var(--dark-color);
     font-weight: 500;
+    font-size: 1rem;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 1rem;
@@ -243,14 +247,16 @@ body {
 }
 
 .data-table th {
-    padding: 12px;
+    padding: 14px;
     text-align: left;
     font-weight: 600;
+    font-size: 1.05rem;
 }
 
 .data-table td {
-    padding: 12px;
+    padding: 14px;
     border-bottom: 1px solid var(--light-color);
+    font-size: 1rem;
 }
 
 .data-table tbody tr:hover {
@@ -353,17 +359,17 @@ body {
 }
 
 .stat-icon {
-    font-size: 2.5rem;
+    font-size: 3rem;
 }
 
 .stat-content h3 {
-    font-size: 0.9rem;
-    margin-bottom: 5px;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
     opacity: 0.9;
 }
 
 .stat-number {
-    font-size: 2rem;
+    font-size: 2.3rem;
     font-weight: bold;
     margin: 0;
 }
@@ -387,6 +393,7 @@ body {
 .chart-container h3 {
     color: var(--dark-color);
     margin-bottom: 15px;
+    font-size: 1.3rem;
 }
 
 .status-display {
@@ -398,9 +405,10 @@ body {
 .status-item {
     display: flex;
     justify-content: space-between;
-    padding: 10px;
+    padding: 12px;
     background-color: var(--light-color);
     border-radius: 4px;
+    font-size: 1rem;
 }
 
 .status-value {
@@ -434,6 +442,7 @@ body {
 .stat-list li {
     padding: 8px 0;
     border-bottom: 1px solid var(--light-color);
+    font-size: 1rem;
 }
 
 .stat-list li:last-child {
@@ -460,8 +469,10 @@ body {
     background-color: var(--dark-color);
     color: white;
     text-align: center;
-    padding: 20px;
+    padding: 25px 40px;
     margin-top: 40px;
+    width: 100%;
+    font-size: 1rem;
 }
 
 .footer p {
@@ -488,7 +499,7 @@ body {
 }
 
 .error-container h2 {
-    font-size: 2rem;
+    font-size: 2.2rem;
     color: var(--dark-color);
     margin-bottom: 10px;
 }
@@ -496,20 +507,41 @@ body {
 .error-container p {
     color: #999;
     margin-bottom: 20px;
+    font-size: 1.1rem;
 }
 
 /* ==================== RESPONSIVE DESIGN ==================== */
 
 @media (max-width: 768px) {
+    .header-content {
+        padding: 0 20px;
+    }
+
+    .navbar {
+        padding: 12px 20px;
+    }
+
     .nav-list {
-        gap: 15px;
-        font-size: 0.9rem;
+        gap: 20px;
+        font-size: 1rem;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    .page-section {
+        padding: 25px;
     }
 
     .section-header {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
     }
 
     .stats-grid {
@@ -526,12 +558,12 @@ body {
     }
 
     .data-table {
-        font-size: 0.85rem;
+        font-size: 0.95rem;
     }
 
     .data-table th,
     .data-table td {
-        padding: 8px;
+        padding: 10px;
     }
 
     .actions {
@@ -549,16 +581,36 @@ body {
 
 @media (max-width: 480px) {
     .logo {
-        font-size: 1.8rem;
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 0.95rem;
     }
 
     .section-title {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
     }
 
     .nav-list {
-        gap: 10px;
-        font-size: 0.8rem;
+        gap: 12px;
+        font-size: 0.9rem;
+    }
+
+    .header-content {
+        padding: 0 15px;
+    }
+
+    .navbar {
+        padding: 10px 15px;
+    }
+
+    .main-content {
+        padding: 15px;
+    }
+
+    .page-section {
+        padding: 20px;
     }
 
     .stat-card {
@@ -570,6 +622,16 @@ body {
     }
 
     .stat-number {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
+    }
+
+    .stat-content h3 {
+        font-size: 1rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
     }
 }

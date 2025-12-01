@@ -5,7 +5,7 @@
 
 PROJECT_DIR="/Users/punam/Desktop/varsity/3-1/Lab/dbms/finalProj"
 VENV_PATH="$PROJECT_DIR/venv"
-APP_PATH="$PROJECT_DIR/backend/app.py"
+APP_PATH="$PROJECT_DIR/start_app.py"
 LOG_FILE="$PROJECT_DIR/server.log"
 PID_FILE="$PROJECT_DIR/.server.pid"
 
@@ -20,6 +20,8 @@ cleanup() {
     echo -e "${YELLOW}🧹 Cleaning up existing processes...${NC}"
     pkill -f "python.*app.py" 2>/dev/null || true
     pkill -f "python backend/app.py" 2>/dev/null || true
+    pkill -f "python.*start_app.py" 2>/dev/null || true
+    pkill -f "start_app.py" 2>/dev/null || true
     sleep 1
 }
 

@@ -12,13 +12,30 @@ import os
 import threading
 import time
 
-# Setup template directory - use frontend/templates or root templates
-template_dir = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'templates')
-if not os.path.exists(template_dir):
-    template_dir = os.path.join(os.path.dirname(__file__), '..', 'templates')
+# Get the absolute path to the backend directory
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BACKEND_DIR)
 
-# Setup static files directory
-static_dir = os.path.join(os.path.dirname(__file__), '..', 'static')
+# Setup template directory - use frontend/templates or root templates
+template_dir = os.path.join(PROJECT_ROOT, 'frontend', 'templates')
+if not os.path.exists(template_dir):
+    template_dir = os.path.join(PROJECT_ROOT, 'templates')
+
+# Setup static files directory - MUST be at project root
+static_dir = os.path.join(PROJECT_ROOT, 'static')
+
+# Ensure paths exist and log them for debugging
+if not os.path.exists(static_dir):
+    print(f"⚠️  WARNING: Static directory not found at {static_dir}")
+    print(f"📁 Backend dir: {BACKEND_DIR}")
+    print(f"📁 Project root: {PROJECT_ROOT}")
+else:
+    print(f"✅ Static directory found at: {static_dir}")
+
+if not os.path.exists(template_dir):
+    print(f"⚠️  WARNING: Template directory not found at {template_dir}")
+else:
+    print(f"✅ Template directory found at: {template_dir}")
 
 app = Flask(__name__, template_folder=template_dir, static_folder=static_dir, static_url_path='/static')
 
@@ -45,8 +62,13 @@ except Exception as e:
     cnx_pool = None
 
 # Schema file path for logging queries (from project root, not backend/)
-SCHEMA_FILE = os.path.join(os.path.dirname(__file__), '..', 'database', 'schema.sql')
+SCHEMA_FILE = os.path.join(PROJECT_ROOT, 'database', 'schema.sql')
 SCHEMA_FILE = os.path.abspath(SCHEMA_FILE)  # Resolve to absolute path
+
+if not os.path.exists(os.path.dirname(SCHEMA_FILE)):
+    print(f"⚠️  WARNING: Database directory not found at {os.path.dirname(SCHEMA_FILE)}")
+else:
+    print(f"✅ Database directory found at: {os.path.dirname(SCHEMA_FILE)}")
 
 # ===== DATABASE HELPER FUNCTIONS =====
 

@@ -23,6 +23,7 @@ SELECT * FROM Crew;
 SELECT * FROM Recycling_Center;
 SELECT * FROM Collection_Schedule;
 SELECT * FROM Has_Schedule;
+SELECT * FROM Staff;
 SELECT * FROM Assigned;
 ```
 
@@ -41,6 +42,7 @@ DESCRIBE Crew;
 DESCRIBE Recycling_Center;
 DESCRIBE Collection_Schedule;
 DESCRIBE Has_Schedule;
+DESCRIBE Staff;
 DESCRIBE Assigned;
 ```
 
@@ -59,6 +61,7 @@ SELECT COUNT(*) as crew_count FROM Crew;
 SELECT COUNT(*) as recycling_center_count FROM Recycling_Center;
 SELECT COUNT(*) as collection_schedule_count FROM Collection_Schedule;
 SELECT COUNT(*) as has_schedule_count FROM Has_Schedule;
+SELECT COUNT(*) as staff_count FROM Staff;
 SELECT COUNT(*) as assigned_count FROM Assigned;
 ```
 
@@ -111,9 +114,19 @@ SELECT a.area_name, COUNT(DISTINCT c.citizen_id) as citizen_count, COUNT(DISTINC
 SELECT hs.schedule_id, hs.schedule_date, a.area_name, cr.crew_name, cr.team_size FROM Has_Schedule hs JOIN Area a ON hs.area_id = a.area_id JOIN Crew cr ON hs.crew_id = cr.crew_id;
 ```
 
-### JOIN #10: Assigned Tasks with Crew and Area
+### JOIN #10: Assigned Staff with Crew Details
 ```sql
-SELECT a.task_id, a.team_name, a.assigned_date, cr.crew_name, a.area_id FROM Assigned a JOIN Crew cr ON a.crew_id = cr.crew_id;
+SELECT a.assigned_id, cr.team_name, s.staff_name, s.position, a.role, a.status, a.assignment_date FROM Assigned a JOIN Crew cr ON a.crew_id = cr.crew_id JOIN Staff s ON a.staff_id = s.staff_id;
+```
+
+### JOIN #11: Staff with Their Team Assignments
+```sql
+SELECT s.staff_id, s.staff_name, s.position, cr.team_name, a.role, a.status, a.assignment_date FROM Staff s LEFT JOIN Assigned a ON s.staff_id = a.staff_id LEFT JOIN Crew cr ON a.crew_id = cr.crew_id;
+```
+
+### JOIN #12: Team with All Assigned Staff
+```sql
+SELECT cr.crew_id, cr.team_name, COUNT(DISTINCT a.staff_id) as staff_count, GROUP_CONCAT(s.staff_name) as staff_list FROM Crew cr LEFT JOIN Assigned a ON cr.crew_id = a.crew_id LEFT JOIN Staff s ON a.staff_id = s.staff_id GROUP BY cr.crew_id, cr.team_name;
 ```
 
 ---
@@ -158,6 +171,21 @@ SELECT a.area_name, COUNT(cr.crew_id) as total_crews, SUM(cr.team_size) as total
 ### AGGREGATE #8: Recycling Center Capacity
 ```sql
 SELECT COUNT(*) as total_centers, SUM(capacity) as total_capacity, AVG(capacity) as avg_capacity, MAX(capacity) as max_capacity, MIN(capacity) as min_capacity FROM Recycling_Center;
+```
+
+### AGGREGATE #9: Staff by Position
+```sql
+SELECT position, COUNT(*) as staff_count, GROUP_CONCAT(staff_name) as staff_names FROM Staff GROUP BY position;
+```
+
+### AGGREGATE #10: Staff Status Distribution
+```sql
+SELECT status, COUNT(*) as count FROM Staff GROUP BY status;
+```
+
+### AGGREGATE #11: Team Staffing Summary
+```sql
+SELECT cr.crew_id, cr.team_name, cr.team_size, COUNT(DISTINCT a.staff_id) as assigned_staff, (cr.team_size - COUNT(DISTINCT a.staff_id)) as open_positions FROM Crew cr LEFT JOIN Assigned a ON cr.crew_id = a.crew_id GROUP BY cr.crew_id, cr.team_name, cr.team_size;
 ```
 
 ---
@@ -277,55 +305,63 @@ SELECT * FROM Area;
 
 ---
 
-## 👥 CREW MANAGEMENT EXPLAINED
+## 👥 STAFF & TEAM MANAGEMENT EXPLAINED
 
-### How Teams are Assigned (Dhaka Waste Management):
+### How Individual Staff are Assigned to Teams (Dhaka Waste Management):
 
-**TEAM-BASED (Not Individual-Based)**
+**INDIVIDUAL-BASED STAFF ASSIGNMENTS**
 
-Each "Crew" is a complete team:
-- Gulshan Cleanup Team = 5 members (work together)
-- Banani Waste Team = 5 members (work together)
-- Dhanmondi Sanitization Team = 4 members (work together)
-
-**NOT individual crew members assigned separately**
+Staff members are individual resources that can be assigned to any team:
+- 20 Individual Staff Members (stored in Staff table)
+- Each has: staff_name, position, contact, email, status
+- Can be assigned to multiple teams (1-to-many relationships)
+- Tracked in Assigned table with role, status, and assignment_date
 
 ### Team Structure:
 
-**Step 1: Define Team**
+**Step 1: Create Individual Staff**
+```sql
+SELECT staff_id, staff_name, position, contact, email, status FROM Staff;
+```
+Shows: All individual staff members with their positions (Team Lead, Supervisor, Driver, Field Staff)
+
+**Step 2: View All Teams**
 ```sql
 SELECT crew_id, team_name, team_size, area_id, contact FROM Crew;
 ```
-Shows: All teams, their size (3-5 members), and home area (Gulshan, Banani, Dhanmondi, Mirpur, Motijheel)
+Shows: All teams, their capacity (team_size), and home area
 
-**Step 2: Assign Team to Schedule**
+**Step 3: Assign Individual Staff to Teams**
 ```sql
-SELECT * FROM Has_Schedule;
+SELECT a.assigned_id, cr.team_name, s.staff_name, s.position, a.role, a.status, a.assignment_date FROM Assigned a JOIN Crew cr ON a.crew_id = cr.crew_id JOIN Staff s ON a.staff_id = s.staff_id;
 ```
-Shows: Which team, assigned to which Dhaka area, on what date
+Shows: Which staff member assigned to which team, their role, status, and when
 
-**Step 3: Create Task Assignment**
+### Query: See Team Staffing
 ```sql
-SELECT * FROM Assigned;
-```
-Shows: Team assigned to area with assignment date
-
-### Query: See All Team Assignments
-```sql
-SELECT cr.team_name, cr.team_size, a.area_name, hs.schedule_date FROM Has_Schedule hs JOIN Crew cr ON hs.crew_id = cr.crew_id JOIN Area a ON hs.area_id = a.area_id ORDER BY hs.schedule_date;
+SELECT cr.crew_id, cr.team_name, cr.team_size, COUNT(DISTINCT a.staff_id) as assigned_staff FROM Crew cr LEFT JOIN Assigned a ON cr.crew_id = a.crew_id GROUP BY cr.crew_id, cr.team_name, cr.team_size;
 ```
 
-### Current Teams in Dhaka (10 Waste Management Teams):
-- Gulshan Cleanup Team (5 members) → Gulshan
-- Gulshan Maintenance Crew (4 members) → Gulshan
-- Banani Waste Team (5 members) → Banani
-- Banani Collection Crew (3 members) → Banani
-- Dhanmondi Sanitization Team (4 members) → Dhanmondi
-- Dhanmondi Disposal Crew (5 members) → Dhanmondi
-- Mirpur Cleaning Team (3 members) → Mirpur
-- Mirpur Waste Management (4 members) → Mirpur
-- Motijheel Recycling Team (5 members) → Motijheel
-- Motijheel Collection Crew (3 members) → Motijheel
+### Query: See Which Teams a Staff Member Works For
+```sql
+SELECT s.staff_id, s.staff_name, s.position, GROUP_CONCAT(cr.team_name SEPARATOR ', ') as teams FROM Staff s LEFT JOIN Assigned a ON s.staff_id = a.staff_id LEFT JOIN Crew cr ON a.crew_id = cr.crew_id GROUP BY s.staff_id, s.staff_name, s.position;
+```
+
+### Staff Positions Available:
+- Team Lead (senior management)
+- Supervisor (team coordination)
+- Driver (waste collection)
+- Field Staff (ground operations)
+
+### Staff Statuses:
+- Active: Currently working
+- Inactive: On hold/not assigned
+- On Leave: Temporary absence
+
+### Assignment Statuses:
+- Assigned: Currently assigned to team
+- Unassigned: Previously assigned (history)
+- On Leave: Temporarily unavailable
 
 ---
 
@@ -397,6 +433,71 @@ echo "✅ Server restarted"
 ```
 
 Run with: `bash restart_server.sh`
+
+---
+
+## 👔 STAFF MANAGEMENT API ENDPOINTS
+
+### Frontend Pages:
+- **Staff Management:** http://localhost:8000/staff
+- **Team Assignments:** http://localhost:8000/assignments
+
+### API Endpoints (JSON):
+
+**Staff Operations:**
+```
+GET    /api/staff              - Get all staff
+POST   /api/staff              - Create new staff
+GET    /api/staff/<id>         - Get staff details
+PUT    /api/staff/<id>         - Update staff
+DELETE /api/staff/<id>         - Delete staff
+```
+
+**Assignment Operations:**
+```
+GET    /api/assignments        - Get all assignments
+POST   /api/assignments        - Create new assignment
+GET    /api/assignments/<id>   - Get assignment details
+PUT    /api/assignments/<id>   - Update assignment
+DELETE /api/assignments/<id>   - Delete assignment
+```
+
+**Query Operations:**
+```
+GET    /api/team/<crew_id>/staff      - Get all staff in a team
+GET    /api/staff/<staff_id>/teams    - Get all teams for staff
+```
+
+### Example cURL Commands:
+
+**Get all staff:**
+```bash
+curl http://localhost:8000/api/staff
+```
+
+**Create new staff:**
+```bash
+curl -X POST http://localhost:8000/api/staff \
+  -H "Content-Type: application/json" \
+  -d '{"staff_name": "John Doe", "position": "Driver", "contact": "01900123456", "email": "john@example.com", "status": "Active"}'
+```
+
+**Assign staff to team:**
+```bash
+curl -X POST http://localhost:8000/api/assignments \
+  -H "Content-Type: application/json" \
+  -d '{"crew_id": 1, "staff_id": 1, "role": "Senior Driver", "status": "Assigned"}'
+```
+
+**Get staff in a team:**
+```bash
+curl http://localhost:8000/api/team/1/staff
+```
+
+**Get teams for a staff member:**
+```bash
+curl http://localhost:8000/api/staff/1/teams
+```
 
 ---
 

@@ -623,3 +623,73 @@ SELECT bin_number, status, fill_level FROM Bins ORDER BY fill_level DESC;
 -- 10. NOW() - Current timestamp for real-time updates
 -- 11. LIMIT - Restricts number of rows affected
 -- 12. ORDER BY - Sorts results by specified column
+
+-- ===== REAL-TIME FRONTEND UPDATES (AUTO-SAVED FROM WEB APPLICATION) =====
+-- This section is automatically populated when data is updated through the web interface.
+-- Each update includes timestamp, operation type, and verification query.
+-- DO NOT EDIT THIS SECTION MANUALLY - All changes are auto-logged from frontend.
+
+-- Auto-saved frontend updates will appear below:
+
+-- ========================================
+-- REAL-TIME UPDATE - Bill TABLE
+-- Timestamp: 2025-01-01 10:30:15
+-- Status: AUTO-SAVED from Frontend
+-- ========================================
+-- Example: Update Bill Status from Pending to Paid
+UPDATE Bill SET status = 'Paid', created_at = NOW() WHERE bill_number = 'BILL002';
+
+-- Verification Query:
+-- SELECT * FROM Bill WHERE bill_number = 'BILL002';
+
+-- ========================================
+-- REAL-TIME UPDATE - Waste TABLE
+-- Timestamp: 2025-01-01 10:31:22
+-- Status: AUTO-SAVED from Frontend
+-- ========================================
+-- Example: Mark waste as disposed after processing
+UPDATE Waste SET status = 'Disposed', collection_date = NOW() WHERE waste_id = 7;
+
+-- Verification Query:
+-- SELECT * FROM Waste WHERE waste_id = 7;
+
+-- ========================================
+-- REAL-TIME UPDATE - Bins TABLE
+-- Timestamp: 2025-01-01 10:32:45
+-- Status: AUTO-SAVED from Frontend
+-- ========================================
+-- Example: Update bin fill level from IoT sensor
+UPDATE Bins SET fill_level = 85, status = 'Full', created_at = NOW() WHERE bin_number = 'BIN002';
+
+-- Verification Query:
+-- SELECT * FROM Bins WHERE bin_number = 'BIN002';
+
+-- ========================================
+-- REAL-TIME INSERT - Payment TABLE
+-- Timestamp: 2025-01-01 10:35:00
+-- Status: AUTO-SAVED from Frontend
+-- ========================================
+-- Example: Record new payment from citizen
+-- INSERT INTO Payment (payment_date, amount, method, citizen_id, bill_id) 
+-- VALUES ('2025-01-01', 5000.00, 'Online', 1, 1);
+
+-- Verification Query:
+-- SELECT COUNT(*) as total_records FROM Payment;
+
+-- ========================================
+-- REAL-TIME UPDATE - Citizen TABLE
+-- Timestamp: 2025-01-01 10:40:30
+-- Status: AUTO-SAVED from Frontend
+-- ========================================
+-- Example: Update citizen contact information
+UPDATE Citizen SET contact = '01900000099', registration_date = NOW() WHERE citizen_id = 5;
+
+-- Verification Query:
+-- SELECT * FROM Citizen WHERE citizen_id = 5;
+
+-- ========================================
+-- NOTE: ALL FUTURE UPDATES FROM FRONTEND WILL BE AUTOMATICALLY LOGGED BELOW
+-- Frontend operations (Create, Read, Update, Delete) trigger automatic SQL logging
+-- ========================================
+
+

@@ -47,17 +47,38 @@ SCHEMA_FILE = os.path.join(os.path.dirname(__file__), 'database', 'schema.sql')
 # ===== DATABASE HELPER FUNCTIONS =====
 
 def log_query_to_schema_async(query_text, operation_type, table_name):
-    """Log UPDATE/DELETE queries to schema.sql (async, non-blocking)"""
+    """Log UPDATE/DELETE/INSERT queries to schema.sql inline (async, non-blocking)"""
     def async_log():
         try:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            comment = f"\n-- {operation_type} OPERATION - {table_name} - {timestamp}\n-- Query: {query_text}\n"
+            
+            # Format query for inline execution
+            formatted_query = query_text.strip()
+            if not formatted_query.endswith(';'):
+                formatted_query += ';'
+            
+            # Create detailed log entry with timestamp and operation info
+            log_entry = f"\n-- ========================================\n"
+            log_entry += f"-- REAL-TIME {operation_type} - {table_name} TABLE\n"
+            log_entry += f"-- Timestamp: {timestamp}\n"
+            log_entry += f"-- Status: AUTO-SAVED from Frontend\n"
+            log_entry += f"-- ========================================\n"
+            log_entry += f"{formatted_query}\n"
+            log_entry += f"\n-- Verification Query:\n"
+            
+            if operation_type == "UPDATE":
+                log_entry += f"-- SELECT * FROM {table_name};\n"
+            elif operation_type == "INSERT":
+                log_entry += f"-- SELECT COUNT(*) as total_records FROM {table_name};\n"
+            elif operation_type == "DELETE":
+                log_entry += f"-- SELECT COUNT(*) as remaining_records FROM {table_name};\n"
             
             if os.path.exists(SCHEMA_FILE):
                 with open(SCHEMA_FILE, 'a') as f:
-                    f.write(comment)
+                    f.write(log_entry)
+                print(f"✅ Query logged to schema.sql: {operation_type} on {table_name}")
         except Exception as e:
-            print(f"⚠ Query logging error: {e}")
+            print(f"⚠️ Query logging error: {e}")
     
     # Log in background thread (don't block request)
     thread = threading.Thread(target=async_log, daemon=True)

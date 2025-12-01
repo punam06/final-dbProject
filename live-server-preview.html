@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Management System - Live Server Preview</title>
+    <!-- Import CSS directly with absolute path to Flask server -->
+    <link rel="stylesheet" href="http://localhost:8000/static/styles.css">
+    <style>
+        .live-server-notice {
+            background-color: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 5px;
+            text-align: center;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="live-server-notice">
+        <strong>⚠️ Live Server Mode:</strong> CSS is being loaded from Flask (port 8000). Make sure Flask is running!
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">WasteHub</h1>
+                <p class="subtitle">Waste Management System</p>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-list">
+                    <li><a href="http://localhost:8000/" class="nav-link">Dashboard</a></li>
+                    <li><a href="http://localhost:8000/areas" class="nav-link">Areas</a></li>
+                    <li><a href="http://localhost:8000/citizens" class="nav-link">Citizens</a></li>
+                    <li><a href="http://localhost:8000/crew" class="nav-link">Team</a></li>
+                    <li><a href="http://localhost:8000/staff" class="nav-link">Staff</a></li>
+                    <li><a href="http://localhost:8000/assignments" class="nav-link">Assignments</a></li>
+                    <li><a href="http://localhost:8000/bills" class="nav-link">Bills</a></li>
+                    <li><a href="http://localhost:8000/waste" class="nav-link">Waste</a></li>
+                    <li><a href="http://localhost:8000/bins" class="nav-link">Bins</a></li>
+                    <li><a href="http://localhost:8000/schedules" class="nav-link">Schedules</a></li>
+                    <li><a href="http://localhost:8000/centers" class="nav-link">Centers</a></li>
+                    <li><a href="http://localhost:8000/payments" class="nav-link">Payments</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="page-section">
+                <h2 class="section-title">Live Server CSS Test</h2>
+                
+                <div style="padding: 20px; background: #f0f0f0; border-radius: 8px; margin: 20px 0;">
+                    <h3>✅ If you see this with styling, CSS is loading correctly!</h3>
+                    <p>CSS is being loaded from: <strong>http://localhost:8000/static/styles.css</strong></p>
+                    <p>Make sure:</p>
+                    <ul>
+                        <li>✅ Flask is running on port 8000</li>
+                        <li>✅ You see this styled content (not just plain HTML)</li>
+                        <li>✅ For the full app, visit: <a href="http://localhost:8000/">http://localhost:8000/</a></li>
+                    </ul>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>CSS Test Card 1</h3>
+                        <p>This is a styled card to test CSS</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>CSS Test Card 2</h3>
+                        <p>Check if this has styling applied</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>CSS Test Card 3</h3>
+                        <p>Colors and layout from styles.css</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Waste Management System. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="http://localhost:8000/static/common.js"></script>
+    <script>
+        console.log("✅ Live Server preview loaded from port 5500");
+        console.log("📍 CSS loaded from Flask (port 8000)");
+        console.log("🔗 Click navigation links to access the full application");
+    </script>
+</body>
+</html>

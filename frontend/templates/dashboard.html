@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <h2 class="section-title">Dashboard</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3>Total Citizens</h3>
+                <p class="stat-number">{{ stats.total_citizens }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">♻️</div>
+            <div class="stat-content">
+                <h3>Waste Collected (kg)</h3>
+                <p class="stat-number">{{ "%.2f"|format(stats.total_waste_kg) }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-content">
+                <h3>Waste Recycled (kg)</h3>
+                <p class="stat-number">{{ "%.2f"|format(stats.total_recycled_kg) }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <h3>Total Bills Paid ($)</h3>
+                <p class="stat-number">{{ "%.2f"|format(stats.total_bills_paid) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-grid">
+        <div class="chart-container">
+            <h3>Waste Status Distribution</h3>
+            <div class="status-display">
+                <div class="status-item">
+                    <span>Collected:</span>
+                    <span class="status-value">{{ stats.waste_status.collected }}</span>
+                </div>
+                <div class="status-item">
+                    <span>Recycled:</span>
+                    <span class="status-value">{{ stats.waste_status.recycled }}</span>
+                </div>
+                <div class="status-item">
+                    <span>Disposed:</span>
+                    <span class="status-value">{{ stats.waste_status.disposed }}</span>
+                </div>
+                <div class="status-item">
+                    <span>Pending:</span>
+                    <span class="status-value">{{ stats.waste_status.pending }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h3>Bill Status Distribution</h3>
+            <div class="status-display">
+                <div class="status-item">
+                    <span>Paid:</span>
+                    <span class="status-value">{{ stats.bill_status.paid }}</span>
+                </div>
+                <div class="status-item">
+                    <span>Pending:</span>
+                    <span class="status-value">{{ stats.bill_status.pending }}</span>
+                </div>
+                <div class="status-item">
+                    <span>Overdue:</span>
+                    <span class="status-value">{{ stats.bill_status.overdue }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats -->
+    <div class="additional-stats">
+        <div class="stat-box">
+            <h3>System Overview</h3>
+            <ul class="stat-list">
+                <li><strong>Total Areas:</strong> {{ stats.areas }}</li>
+                <li><strong>Total Crews:</strong> {{ stats.crews }}</li>
+                <li><strong>Total Bins:</strong> {{ stats.bins }}</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}

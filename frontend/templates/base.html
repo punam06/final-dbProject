@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Waste Management System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">WasteHub</h1>
+                <p class="subtitle">Waste Management System</p>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-list">
+                    <li><a href="{{ url_for('home') }}" class="nav-link">Dashboard</a></li>
+                    <li><a href="{{ url_for('areas_page') }}" class="nav-link">Areas</a></li>
+                    <li><a href="{{ url_for('citizens_page') }}" class="nav-link">Citizens</a></li>
+                    <li><a href="{{ url_for('crew_page') }}" class="nav-link">Crew</a></li>
+                    <li><a href="{{ url_for('bills_page') }}" class="nav-link">Bills</a></li>
+                    <li><a href="{{ url_for('waste_page') }}" class="nav-link">Waste</a></li>
+                    <li><a href="{{ url_for('bins_page') }}" class="nav-link">Bins</a></li>
+                    <li><a href="{{ url_for('schedules_page') }}" class="nav-link">Schedules</a></li>
+                    <li><a href="{{ url_for('centers_page') }}" class="nav-link">Centers</a></li>
+                    <li><a href="{{ url_for('payments_page') }}" class="nav-link">Payments</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Waste Management System. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

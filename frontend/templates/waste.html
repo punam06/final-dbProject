@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Waste - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Waste Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Waste</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Add New Waste</h3>
+            <form id="wasteForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="wasteId">
+                
+                <div class="form-group">
+                    <label for="waste_type">Waste Type *</label>
+                    <input type="text" id="waste_type" required placeholder="e.g., Organic, Plastic">
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" required placeholder="Enter waste name">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category *</label>
+                    <select id="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Recyclable">Recyclable</option>
+                        <option value="Biodegradable">Biodegradable</option>
+                        <option value="Non-recyclable">Non-recyclable</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="weight">Weight (kg) *</label>
+                    <input type="number" id="weight" step="0.01" required placeholder="Enter weight">
+                </div>
+
+                <div class="form-group">
+                    <label for="citizen_id">Citizen *</label>
+                    <select id="citizen_id" required></select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Weight (kg)</th>
+                    <th>Citizen</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="wasteTable">
+                <tr class="loading-row">
+                    <td colspan="7">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_URL = '/api/waste';
+const CITIZENS_API = '/api/citizens-list';
+let currentEditingId = null;
+
+// Load citizens dropdown
+async function loadCitizens() {
+    try {
+        const response = await fetch(CITIZENS_API);
+        const citizens = await response.json();
+        const select = document.getElementById('citizen_id');
+        select.innerHTML = '<option value="">Select Citizen</option>';
+        citizens.forEach(citizen => {
+            const option = document.createElement('option');
+            option.value = citizen.citizen_id;
+            option.textContent = citizen.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading citizens:', error);
+    }
+}
+
+// Load waste data
+async function loadWaste() {
+    try {
+        const response = await fetch(API_URL);
+        const waste = await response.json();
+        const table = document.getElementById('wasteTable');
+        
+        if (waste.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" class="no-data">No waste found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = waste.map(w => `
+            <tr>
+                <td>${w.waste_id}</td>
+                <td>${w.waste_type}</td>
+                <td>${w.name}</td>
+                <td><span class="category-badge">${w.category}</span></td>
+                <td>${parseFloat(w.weight).toFixed(2)}</td>
+                <td>${w.citizen_name}</td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editWaste(${w.waste_id})">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteWaste(${w.waste_id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading waste:', error);
+        document.getElementById('wasteTable').innerHTML = '<tr><td colspan="7" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Add New Waste';
+    document.getElementById('wasteForm').reset();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit waste
+async function editWaste(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const waste = await response.json();
+        
+        document.getElementById('wasteId').value = waste.waste_id;
+        document.getElementById('waste_type').value = waste.waste_type;
+        document.getElementById('name').value = waste.name;
+        document.getElementById('category').value = waste.category;
+        document.getElementById('weight').value = waste.weight;
+        document.getElementById('citizen_id').value = waste.citizen_id;
+        
+        document.getElementById('formTitle').textContent = 'Edit Waste';
+        document.getElementById('formContainer').style.display = 'block';
+        currentEditingId = id;
+    } catch (error) {
+        console.error('Error loading waste:', error);
+        alert('Error loading waste data');
+    }
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        waste_type: document.getElementById('waste_type').value,
+        name: document.getElementById('name').value,
+        category: document.getElementById('category').value,
+        weight: document.getElementById('weight').value,
+        citizen_id: document.getElementById('citizen_id').value
+    };
+
+    try {
+        const url = currentEditingId ? `${API_URL}/${currentEditingId}` : API_URL;
+        const method = currentEditingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadWaste();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving waste');
+    }
+}
+
+// Delete waste
+async function deleteWaste(id) {
+    if (confirm('Are you sure you want to delete this waste record?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadWaste();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting waste:', error);
+            alert('Error deleting waste');
+        }
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('wasteForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadCitizens();
+    loadWaste();
+});
+</script>
+{% endblock %}

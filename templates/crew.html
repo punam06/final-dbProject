@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Crew - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Crew Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Crew</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Add New Crew</h3>
+            <form id="crewForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="crewId">
+                
+                <div class="form-group">
+                    <label for="team_name">Team Name *</label>
+                    <input type="text" id="team_name" required placeholder="Enter team name">
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">Contact *</label>
+                    <input type="text" id="contact" required placeholder="Enter contact number">
+                </div>
+
+                <div class="form-group">
+                    <label for="area_id">Area *</label>
+                    <select id="area_id" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="team_size">Team Size</label>
+                    <input type="number" id="team_size" placeholder="Enter team size">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Crew Name</th>
+                    <th>Contact</th>
+                    <th>Area</th>
+                    <th>Team Size</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="crewTable">
+                <tr class="loading-row">
+                    <td colspan="6">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_URL = '/api/crew';
+const AREAS_API = '/api/areas-list';
+let currentEditingId = null;
+
+// Load areas dropdown
+async function loadAreas() {
+    try {
+        const response = await fetch(AREAS_API);
+        const areas = await response.json();
+        const select = document.getElementById('area_id');
+        select.innerHTML = '<option value="">Select Area</option>';
+        areas.forEach(area => {
+            const option = document.createElement('option');
+            option.value = area.area_id;
+            option.textContent = area.area_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading areas:', error);
+    }
+}
+
+// Load crew data
+async function loadCrew() {
+    try {
+        const response = await fetch(API_URL);
+        const crews = await response.json();
+        const table = document.getElementById('crewTable');
+        
+        if (crews.length === 0) {
+            table.innerHTML = '<tr><td colspan="6" class="no-data">No crew found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = crews.map(crew => `
+            <tr>
+                <td>${crew.crew_id}</td>
+                <td>${crew.team_name}</td>
+                <td>${crew.contact}</td>
+                <td>${crew.area_name}</td>
+                <td>${crew.team_size}</td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editCrew(${crew.crew_id})">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteCrew(${crew.crew_id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading crew:', error);
+        document.getElementById('crewTable').innerHTML = '<tr><td colspan="6" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Add New Crew';
+    document.getElementById('crewForm').reset();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit crew
+async function editCrew(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const crew = await response.json();
+        
+        document.getElementById('crewId').value = crew.crew_id;
+        document.getElementById('team_name').value = crew.team_name;
+        document.getElementById('contact').value = crew.contact;
+        document.getElementById('area_id').value = crew.area_id;
+        document.getElementById('team_size').value = crew.team_size;
+        
+        document.getElementById('formTitle').textContent = 'Edit Crew';
+        document.getElementById('formContainer').style.display = 'block';
+        currentEditingId = id;
+    } catch (error) {
+        console.error('Error loading crew:', error);
+        alert('Error loading crew data');
+    }
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        team_name: document.getElementById('team_name').value,
+        contact: document.getElementById('contact').value,
+        area_id: document.getElementById('area_id').value,
+        team_size: document.getElementById('team_size').value
+    };
+
+    try {
+        const url = currentEditingId ? `${API_URL}/${currentEditingId}` : API_URL;
+        const method = currentEditingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadCrew();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving crew');
+    }
+}
+
+// Delete crew
+async function deleteCrew(id) {
+    if (confirm('Are you sure you want to delete this crew?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadCrew();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting crew:', error);
+            alert('Error deleting crew');
+        }
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('crewForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadAreas();
+    loadCrew();
+});
+</script>
+{% endblock %}

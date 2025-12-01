@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Areas - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Areas Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Area</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Add New Area</h3>
+            <form id="areaForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="areaId">
+                
+                <div class="form-group">
+                    <label for="area_name">Area Name *</label>
+                    <input type="text" id="area_name" required placeholder="Enter area name">
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" required placeholder="Enter location">
+                </div>
+
+                <div class="form-group">
+                    <label for="population">Population</label>
+                    <input type="number" id="population" placeholder="Enter population">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Area Name</th>
+                    <th>Location</th>
+                    <th>Population</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="areasTable">
+                <tr class="loading-row">
+                    <td colspan="5">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_URL = '/api/areas';
+let currentEditingId = null;
+
+// Load areas data
+async function loadAreas() {
+    try {
+        const response = await fetch(API_URL);
+        const areas = await response.json();
+        const table = document.getElementById('areasTable');
+        
+        if (areas.length === 0) {
+            table.innerHTML = '<tr><td colspan="5" class="no-data">No areas found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = areas.map(area => `
+            <tr>
+                <td>${area.area_id}</td>
+                <td>${area.area_name}</td>
+                <td>${area.location}</td>
+                <td>${area.population}</td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editArea(${area.area_id})">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteArea(${area.area_id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading areas:', error);
+        document.getElementById('areasTable').innerHTML = '<tr><td colspan="5" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Add New Area';
+    document.getElementById('areaForm').reset();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit area
+async function editArea(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const area = await response.json();
+        
+        document.getElementById('areaId').value = area.area_id;
+        document.getElementById('area_name').value = area.area_name;
+        document.getElementById('location').value = area.location;
+        document.getElementById('population').value = area.population;
+        
+        document.getElementById('formTitle').textContent = 'Edit Area';
+        document.getElementById('formContainer').style.display = 'block';
+        currentEditingId = id;
+    } catch (error) {
+        console.error('Error loading area:', error);
+        alert('Error loading area data');
+    }
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        area_name: document.getElementById('area_name').value,
+        location: document.getElementById('location').value,
+        population: document.getElementById('population').value
+    };
+
+    try {
+        const url = currentEditingId ? `${API_URL}/${currentEditingId}` : API_URL;
+        const method = currentEditingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadAreas();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving area');
+    }
+}
+
+// Delete area
+async function deleteArea(id) {
+    if (confirm('Are you sure you want to delete this area?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadAreas();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting area:', error);
+            alert('Error deleting area');
+        }
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('areaForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadAreas();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Citizens - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Citizens Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Citizen</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Add New Citizen</h3>
+            <form id="citizenForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="citizenId">
+                
+                <div class="form-group">
+                    <label for="name">Name *</label>
+                    <input type="text" id="name" required placeholder="Enter citizen name">
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address *</label>
+                    <input type="text" id="address" required placeholder="Enter address">
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">Contact *</label>
+                    <input type="text" id="contact" required placeholder="Enter contact number">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Enter email">
+                </div>
+
+                <div class="form-group">
+                    <label for="area_id">Area *</label>
+                    <select id="area_id" required></select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Area</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="citizensTable">
+                <tr class="loading-row">
+                    <td colspan="7">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_URL = '/api/citizens';
+const AREAS_API = '/api/areas-list';
+
+let currentEditingId = null;
+
+// Load areas dropdown
+async function loadAreas() {
+    try {
+        const response = await fetch(AREAS_API);
+        const areas = await response.json();
+        const select = document.getElementById('area_id');
+        select.innerHTML = '<option value="">Select Area</option>';
+        areas.forEach(area => {
+            const option = document.createElement('option');
+            option.value = area.area_id;
+            option.textContent = area.area_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading areas:', error);
+    }
+}
+
+// Load citizens data
+async function loadCitizens() {
+    try {
+        const response = await fetch(API_URL);
+        const citizens = await response.json();
+        const table = document.getElementById('citizensTable');
+        
+        if (citizens.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" class="no-data">No citizens found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = citizens.map(citizen => `
+            <tr>
+                <td>${citizen.citizen_id}</td>
+                <td>${citizen.name}</td>
+                <td>${citizen.address}</td>
+                <td>${citizen.contact}</td>
+                <td>${citizen.email || '-'}</td>
+                <td>${citizen.area_name}</td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editCitizen(${citizen.citizen_id})">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteCitizen(${citizen.citizen_id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading citizens:', error);
+        document.getElementById('citizensTable').innerHTML = '<tr><td colspan="7" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Add New Citizen';
+    document.getElementById('citizenForm').reset();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit citizen
+async function editCitizen(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const citizen = await response.json();
+        
+        document.getElementById('citizenId').value = citizen.citizen_id;
+        document.getElementById('name').value = citizen.name;
+        document.getElementById('address').value = citizen.address;
+        document.getElementById('contact').value = citizen.contact;
+        document.getElementById('email').value = citizen.email || '';
+        document.getElementById('area_id').value = citizen.area_id;
+        
+        document.getElementById('formTitle').textContent = 'Edit Citizen';
+        document.getElementById('formContainer').style.display = 'block';
+        currentEditingId = id;
+    } catch (error) {
+        console.error('Error loading citizen:', error);
+        alert('Error loading citizen data');
+    }
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('name').value,
+        address: document.getElementById('address').value,
+        contact: document.getElementById('contact').value,
+        email: document.getElementById('email').value,
+        area_id: document.getElementById('area_id').value
+    };
+
+    try {
+        const url = currentEditingId ? `${API_URL}/${currentEditingId}` : API_URL;
+        const method = currentEditingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadCitizens();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving citizen');
+    }
+}
+
+// Delete citizen
+async function deleteCitizen(id) {
+    if (confirm('Are you sure you want to delete this citizen?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadCitizens();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting citizen:', error);
+            alert('Error deleting citizen');
+        }
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('citizenForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadAreas();
+    loadCitizens();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}বর্জ্য ব্যবস্থাপনা ব্যবস্থা{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">বর্জ্য হাব</h1>
+                <p class="subtitle">ঢাকা বর্জ্য ব্যবস্থাপনা ব্যবস্থা</p>
+            </div>
+            <nav class="navbar">
+                <ul class="nav-list">
+                    <li><a href="{{ url_for('home') }}" class="nav-link">ড্যাশবোর্ড</a></li>
+                    <li><a href="{{ url_for('areas_page') }}" class="nav-link">এলাকা</a></li>
+                    <li><a href="{{ url_for('citizens_page') }}" class="nav-link">নাগরিক</a></li>
+                    <li><a href="{{ url_for('crew_page') }}" class="nav-link">দল</a></li>
+                    <li><a href="{{ url_for('bills_page') }}" class="nav-link">বিল</a></li>
+                    <li><a href="{{ url_for('waste_page') }}" class="nav-link">বর্জ্য</a></li>
+                    <li><a href="{{ url_for('bins_page') }}" class="nav-link">বিন</a></li>
+                    <li><a href="{{ url_for('schedules_page') }}" class="nav-link">সূচী</a></li>
+                    <li><a href="{{ url_for('centers_page') }}" class="nav-link">কেন্দ্র</a></li>
+                    <li><a href="{{ url_for('payments_page') }}" class="nav-link">পেমেন্ট</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 বর্জ্য ব্যবস্থাপনা ব্যবস্থা। সর্বাধিকার সংরক্ষিত।</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='common.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

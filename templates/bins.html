@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}Bins - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Bins Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Bin</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Add New Bin</h3>
+            <form id="binsForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="binId">
+                
+                <div class="form-group">
+                    <label for="bin_number">Bin Number *</label>
+                    <input type="text" id="bin_number" required placeholder="e.g., BIN001">
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status *</label>
+                    <select id="status" required>
+                        <option value="">Select Status</option>
+                        <option value="Empty">Empty</option>
+                        <option value="Partial">Partial</option>
+                        <option value="Full">Full</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="fill_level">Fill Level (%) *</label>
+                    <input type="number" id="fill_level" min="0" max="100" required placeholder="Enter fill level">
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location *</label>
+                    <input type="text" id="location" required placeholder="Enter location">
+                </div>
+
+                <div class="form-group">
+                    <label for="area_id">Area *</label>
+                    <select id="area_id" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sensor">Sensor ID</label>
+                    <input type="text" id="sensor" placeholder="Enter sensor ID">
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Bin Number</th>
+                    <th>Status</th>
+                    <th>Fill Level (%)</th>
+                    <th>Location</th>
+                    <th>Area</th>
+                    <th>Sensor</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="binsTable">
+                <tr class="loading-row">
+                    <td colspan="8">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_URL = '/api/bins';
+const AREAS_API = '/api/areas-list';
+let currentEditingId = null;
+
+// Load areas dropdown
+async function loadAreas() {
+    try {
+        const response = await fetch(AREAS_API);
+        const areas = await response.json();
+        const select = document.getElementById('area_id');
+        select.innerHTML = '<option value="">Select Area</option>';
+        areas.forEach(area => {
+            const option = document.createElement('option');
+            option.value = area.area_id;
+            option.textContent = area.area_name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading areas:', error);
+    }
+}
+
+// Load bins data
+async function loadBins() {
+    try {
+        const response = await fetch(API_URL);
+        const bins = await response.json();
+        const table = document.getElementById('binsTable');
+        
+        if (bins.length === 0) {
+            table.innerHTML = '<tr><td colspan="8" class="no-data">No bins found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = bins.map(bin => `
+            <tr>
+                <td>${bin.bin_id}</td>
+                <td>${bin.bin_number}</td>
+                <td><span class="status-badge status-${bin.status.toLowerCase()}">${bin.status}</span></td>
+                <td><div class="progress-bar" style="width: ${bin.fill_level}%"></div>${bin.fill_level}%</td>
+                <td>${bin.location}</td>
+                <td>${bin.area_name}</td>
+                <td>${bin.sensor || '-'}</td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editBin(${bin.bin_id})">Edit</button>
+                    <button class="btn btn-small btn-danger" onclick="deleteBin(${bin.bin_id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading bins:', error);
+        document.getElementById('binsTable').innerHTML = '<tr><td colspan="8" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Add New Bin';
+    document.getElementById('binsForm').reset();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit bin
+async function editBin(id) {
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const bin = await response.json();
+        
+        document.getElementById('binId').value = bin.bin_id;
+        document.getElementById('bin_number').value = bin.bin_number;
+        document.getElementById('status').value = bin.status;
+        document.getElementById('fill_level').value = bin.fill_level;
+        document.getElementById('location').value = bin.location;
+        document.getElementById('area_id').value = bin.area_id;
+        document.getElementById('sensor').value = bin.sensor || '';
+        
+        document.getElementById('formTitle').textContent = 'Edit Bin';
+        document.getElementById('formContainer').style.display = 'block';
+        currentEditingId = id;
+    } catch (error) {
+        console.error('Error loading bin:', error);
+        alert('Error loading bin data');
+    }
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        bin_number: document.getElementById('bin_number').value,
+        status: document.getElementById('status').value,
+        fill_level: document.getElementById('fill_level').value,
+        location: document.getElementById('location').value,
+        area_id: document.getElementById('area_id').value,
+        sensor: document.getElementById('sensor').value
+    };
+
+    try {
+        const url = currentEditingId ? `${API_URL}/${currentEditingId}` : API_URL;
+        const method = currentEditingId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadBins();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving bin');
+    }
+}
+
+// Delete bin
+async function deleteBin(id) {
+    if (confirm('Are you sure you want to delete this bin?')) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadBins();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting bin:', error);
+            alert('Error deleting bin');
+        }
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('binsForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadAreas();
+    loadBins();
+});
+</script>
+{% endblock %}

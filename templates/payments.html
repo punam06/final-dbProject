@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Payments - Waste Management System{% endblock %}
+
+{% block content %}
+<section class="page-section">
+    <div class="section-header">
+        <h2 class="section-title">Payments Management</h2>
+        <button class="btn btn-primary" onclick="showAddForm()">+ Add Payment</button>
+    </div>
+
+    <!-- Add/Edit Form -->
+    <div id="formContainer" class="form-container" style="display: none;">
+        <div class="form-card">
+            <h3 id="formTitle">Add New Payment</h3>
+            <form id="paymentForm" onsubmit="submitForm(event)">
+                <input type="hidden" id="paymentId">
+                
+                <div class="form-group">
+                    <label for="citizen_id">Citizen *</label>
+                    <select id="citizen_id" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bill_id">Bill</label>
+                    <select id="bill_id"></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">পরিমাণ (৳) *</label>
+                    <input type="number" id="amount" step="0.01" required placeholder="পরিমাণ লিখুন">
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_date">Payment Date *</label>
+                    <input type="date" id="payment_date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="method">Payment Method *</label>
+                    <select id="method" required>
+                        <option value="">Select Method</option>
+                        <option value="Card">Card</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Online">Online Transfer</option>
+                        <option value="Check">Check</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Citizen</th>
+                    <th>পরিমাণ (৳)</th>
+                    <th>Method</th>
+                    <th>Payment Date</th>
+                    <th>Bill Number</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="paymentsTable">
+                <tr class="loading-row">
+                    <td colspan="7">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const API_URL = '/api/payments';
+const CITIZENS_API = '/api/citizens-list';
+const BILLS_API = '/api/bills-list';
+let currentEditingId = null;
+
+// Load citizens dropdown
+async function loadCitizens() {
+    try {
+        const response = await fetch(CITIZENS_API);
+        const citizens = await response.json();
+        const select = document.getElementById('citizen_id');
+        select.innerHTML = '<option value="">Select Citizen</option>';
+        citizens.forEach(citizen => {
+            const option = document.createElement('option');
+            option.value = citizen.citizen_id;
+            option.textContent = citizen.name;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading citizens:', error);
+    }
+}
+
+// Load bills dropdown
+async function loadBills() {
+    try {
+        const response = await fetch(BILLS_API);
+        const bills = await response.json();
+        const select = document.getElementById('bill_id');
+        select.innerHTML = '<option value="">Select Bill (Optional)</option>';
+        bills.forEach(bill => {
+            const option = document.createElement('option');
+            option.value = bill.bill_id;
+            option.textContent = bill.bill_number;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading bills:', error);
+    }
+}
+
+// Load payments data
+async function loadPayments() {
+    try {
+        const response = await fetch(API_URL);
+        const payments = await response.json();
+        const table = document.getElementById('paymentsTable');
+        
+        if (payments.length === 0) {
+            table.innerHTML = '<tr><td colspan="7" class="no-data">No payments found</td></tr>';
+            return;
+        }
+
+        table.innerHTML = payments.map(payment => `
+            <tr>
+                <td>${payment.payment_id}</td>
+                <td>${payment.citizen_name}</td>
+                <td>৳${parseFloat(payment.amount).toFixed(2)}</td>
+                <td>${payment.method}</td>
+                <td>${payment.payment_date}</td>
+                <td>${payment.bill_number || '-'}</td>
+                <td class="actions">
+                    <button class="btn btn-small" onclick="editPayment(${payment.payment_id})">Edit</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading payments:', error);
+        document.getElementById('paymentsTable').innerHTML = '<tr><td colspan="7" class="error">Error loading data</td></tr>';
+    }
+}
+
+// Show add form
+function showAddForm() {
+    currentEditingId = null;
+    document.getElementById('formTitle').textContent = 'Add New Payment';
+    document.getElementById('paymentForm').reset();
+    document.getElementById('formContainer').style.display = 'block';
+}
+
+// Edit payment
+async function editPayment(id) {
+    alert('Payment records are view-only. To modify, please delete and create a new entry.');
+}
+
+// Submit form
+async function submitForm(event) {
+    event.preventDefault();
+    
+    const formData = {
+        citizen_id: document.getElementById('citizen_id').value,
+        bill_id: document.getElementById('bill_id').value || null,
+        amount: document.getElementById('amount').value,
+        payment_date: document.getElementById('payment_date').value,
+        method: document.getElementById('method').value
+    };
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            hideForm();
+            loadPayments();
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        alert('Error saving payment');
+    }
+}
+
+// Hide form
+function hideForm() {
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('paymentForm').reset();
+    currentEditingId = null;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadCitizens();
+    loadBills();
+    loadPayments();
+});
+</script>
+{% endblock %}

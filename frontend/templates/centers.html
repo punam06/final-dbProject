@@ -108,7 +108,21 @@ function showAddForm() {
 
 // Edit center
 async function editCenter(id) {
-    alert('Center editing feature coming soon. Please delete and create a new entry.');
+    try {
+        const response = await fetch(`${API_URL}/${id}`);
+        const center = await response.json();
+        
+        currentEditingId = id;
+        document.getElementById('centerId').value = center.center_id;
+        document.getElementById('location').value = center.location;
+        document.getElementById('capacity').value = center.capacity;
+        document.getElementById('operational_hours').value = center.operational_hours;
+        document.getElementById('formTitle').textContent = 'Edit Recycling Center';
+        document.getElementById('formContainer').style.display = 'block';
+    } catch (error) {
+        console.error('Error loading center:', error);
+        alert('Error loading center data');
+    }
 }
 
 // Submit form
@@ -122,8 +136,16 @@ async function submitForm(event) {
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
+        let url = API_URL;
+        let method = 'POST';
+        
+        if (currentEditingId) {
+            url = `${API_URL}/${currentEditingId}`;
+            method = 'PUT';
+        }
+
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
@@ -146,7 +168,23 @@ async function submitForm(event) {
 // Delete center
 async function deleteCenter(id) {
     if (confirm('Are you sure you want to delete this center?')) {
-        alert('Delete functionality coming soon.');
+        try {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                loadCenters();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting center:', error);
+            alert('Error deleting center');
+        }
     }
 }
 

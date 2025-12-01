@@ -907,6 +907,39 @@ def api_centers():
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)}), 400
 
+@app.route('/api/centers/<int:center_id>', methods=['GET', 'PUT', 'DELETE'])
+def api_center_detail(center_id):
+    if request.method == 'GET':
+        query = "SELECT center_id, location, capacity, operational_hours FROM Recycling_Center WHERE center_id = %s"
+        results = execute_query(query, (center_id,))
+        if results:
+            return jsonify(results[0])
+        return jsonify({'error': 'Center not found'}), 404
+    
+    elif request.method == 'PUT':
+        data = request.json
+        try:
+            query = """UPDATE Recycling_Center 
+                      SET location = %s, capacity = %s, operational_hours = %s
+                      WHERE center_id = %s"""
+            params = (data['location'], data['capacity'], data.get('operational_hours', ''), center_id)
+            
+            if execute_update(query, params):
+                return jsonify({'success': True, 'message': 'Center updated successfully'})
+            return jsonify({'success': False, 'message': 'Failed to update center'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+    
+    elif request.method == 'DELETE':
+        try:
+            query = "DELETE FROM Recycling_Center WHERE center_id = %s"
+            
+            if execute_update(query, (center_id,)):
+                return jsonify({'success': True, 'message': 'Center deleted successfully'})
+            return jsonify({'success': False, 'message': 'Failed to delete center'}), 400
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 400
+
 # ===== DROPDOWN LISTS API =====
 
 @app.route('/api/areas-list')
